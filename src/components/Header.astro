@@ -1,0 +1,263 @@
+---
+import Icon from "./Icon.astro";
+import { settings } from "../lib/site";
+
+const nav = [
+  { href: "/", label: "Home" },
+  { href: "/about/", label: "About" },
+  { href: "/branches/", label: "Branches" },
+  { href: "/sermons/", label: "Sermons" },
+  { href: "/events/", label: "Events" },
+  { href: "/live/", label: "Live" },
+  { href: "/new-here/", label: "New here?" },
+  { href: "/contact/", label: "Contact" },
+];
+
+const path = Astro.url.pathname.replace(/\/?$/, "/");
+const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+---
+
+{
+  settings.announcement && (
+    <div class="announce">
+      <div class="wrap">
+        {settings.announcementLink ? (
+          <a href={settings.announcementLink}>{settings.announcement}</a>
+        ) : (
+          <span>{settings.announcement}</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+<header class="site-header">
+  <div class="wrap site-header__bar">
+    <a class="brand" href="/" aria-label={`${settings.siteName} home`}>
+      {
+        settings.logo ? (
+          <img src={settings.logo} alt="" class="brand__logo" width="44" height="44" />
+        ) : (
+          <span class="brand__mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="40" height="40">
+              <rect width="40" height="40" rx="10" fill="#1d5bbf" />
+              <path d="M8 28a12 12 0 0 1 24 0Z" fill="#f2b233" />
+              <path d="M20 8v14M14 13h12" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+            </svg>
+          </span>
+        )
+      }
+      <span class="brand__text">
+        <span class="brand__name">Hope Outreach</span>
+        <span class="brand__sub">Ministries</span>
+      </span>
+    </a>
+
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-toggle__open"><Icon name="menu" /></span>
+      <span class="nav-toggle__close"><Icon name="close" /></span>
+      <span class="visually-hidden">Menu</span>
+    </button>
+
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="btn btn--gold btn--small site-nav__give" href="/give/">Give</a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+  const nav = document.getElementById("site-nav");
+  toggle?.addEventListener("click", () => {
+    const open = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!open));
+    nav?.classList.toggle("is-open", !open);
+  });
+</script>
+
+<style>
+  .announce {
+    background: var(--gold-500);
+    color: var(--navy-900);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 0.5rem 0;
+  }
+
+  .announce a {
+    color: inherit;
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(255 255 255 / 96%);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .site-header__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 68px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--navy-800);
+  }
+
+  .brand__logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+  }
+
+  .brand__mark svg {
+    display: block;
+  }
+
+  .brand__text {
+    display: grid;
+    line-height: 1.05;
+  }
+
+  .brand__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  .brand__sub {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--blue-600);
+  }
+
+  .nav-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--sky-100);
+    color: var(--navy-800);
+    cursor: pointer;
+  }
+
+  .nav-toggle__close,
+  .nav-toggle[aria-expanded="true"] .nav-toggle__open {
+    display: none;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle__close {
+    display: inline;
+  }
+
+  .nav-toggle :global(svg) {
+    display: block;
+  }
+
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    padding: 0.5rem var(--gutter) 1.25rem;
+  }
+
+  .site-nav.is-open {
+    display: block;
+  }
+
+  .site-nav ul {
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0;
+  }
+
+  .site-nav li a {
+    display: block;
+    padding: 0.8rem 0.25rem;
+    border-bottom: 1px solid var(--sky-100);
+    color: var(--navy-800);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .site-nav li a[aria-current="page"] {
+    color: var(--blue-600);
+  }
+
+  .site-nav__give {
+    width: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    .nav-toggle {
+      display: none;
+    }
+
+    .site-nav,
+    .site-nav.is-open {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: static;
+      padding: 0;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .site-nav ul {
+      display: flex;
+      gap: 0.1rem;
+      margin: 0;
+    }
+
+    .site-nav li a {
+      border: 0;
+      padding: 0.5rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.97rem;
+    }
+
+    .site-nav li a:hover {
+      background: var(--sky-100);
+    }
+
+    .site-nav li a[aria-current="page"] {
+      background: var(--sky-100);
+    }
+
+    .site-nav__give {
+      width: auto;
+    }
+  }
+</style>

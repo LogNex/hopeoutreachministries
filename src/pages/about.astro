@@ -1,0 +1,74 @@
+---
+import { getEntry, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+
+const page = (await getEntry("pages", "about"))!;
+const { Content } = await render(page);
+const { title, intro, leaders } = page.data;
+---
+
+<Base title={title} description={intro}>
+  <PageHead eyebrow="Who we are" title={title} intro={intro} />
+  <section class="section">
+    <div class="wrap prose"><Content /></div>
+  </section>
+  {
+    leaders.length > 0 && (
+      <section class="section section--tint">
+        <div class="wrap">
+          <div class="section__head">
+            <span class="eyebrow">Leadership</span>
+            <h2>Our leaders</h2>
+          </div>
+          <div class="grid grid--3">
+            {leaders.map((l) => (
+              <div class="card leader">
+                {l.photo ? (
+                  <img src={l.photo} alt="" width="120" height="120" loading="lazy" />
+                ) : (
+                  <span class="leader__initials" aria-hidden="true">
+                    {l.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("")}
+                  </span>
+                )}
+                <h3>{l.name}</h3>
+                {l.role && <p class="card__meta">{l.role}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .leader {
+    text-align: center;
+    display: grid;
+    justify-items: center;
+  }
+
+  .leader img,
+  .leader__initials {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.75rem;
+  }
+
+  .leader__initials {
+    display: grid;
+    place-items: center;
+    background: var(--sky-100);
+    color: var(--blue-700);
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+  }
+
+  .leader p {
+    margin: 0;
+  }
+</style>

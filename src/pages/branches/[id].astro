@@ -1,0 +1,240 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import ServiceTimes from "../../components/ServiceTimes.astro";
+import Paybill from "../../components/Paybill.astro";
+import EventCard from "../../components/EventCard.astro";
+import Icon from "../../components/Icon.astro";
+import {
+  branchIdFromRef,
+  branchName,
+  getBranches,
+  isoDay,
+  mapEmbed,
+  mapLink,
+  settings,
+  telLink,
+  whatsappLink,
+  type Branch,
+} from "../../lib/site";
+
+export async function getStaticPaths() {
+  const branches = await getBranches();
+  return branches.map((branch) => ({ params: { id: branch.id }, props: { branch } }));
+}
+
+const { branch } = Astro.props as { branch: Branch };
+const d = branch.data;
+const { Content } = await render(branch);
+const hasWelcome = Boolean(branch.body?.trim());
+const today = isoDay(new Date());
+const events = (await getCollection("events"))
+  .filter((e) => {
+    const ref = branchIdFromRef(e.data.branch);
+    return (ref === "" || ref === branch.id) && isoDay(e.data.endDate ?? e.data.date) >= today;
+  })
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+const directions = mapLink(branch);
+const embed = mapEmbed(branch);
+const wa = whatsappLink(d.whatsapp, `Hello ${branchName(branch)}, `);
+const tel = telLink(d.phone);
+---
+
+<Base
+  title={`${d.town} branch`}
+  description={`Service times, directions and contacts for ${branchName(branch)}.`}
+  image={d.photo || undefined}
+>
+  <PageHead eyebrow="Hope Outreach Ministries" title={d.town} intro={[d.address, d.county].filter(Boolean).join(", ") || undefined}>
+    <div class="btn-row branch-actions">
+      {directions && <a class="btn btn--gold" href={directions} target="_blank" rel="noopener"><Icon name="pin" /> Directions</a>}
+      {tel && <a class="btn btn--light" href={tel}><Icon name="phone" /> Call</a>}
+      {wa && <a class="btn btn--light" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> WhatsApp</a>}
+    </div>
+  </PageHead>
+
+  <section class="section">
+    <div class="wrap branch-layout">
+      <div class="branch-main">
+        {d.photo && <img class="branch-photo" src={d.photo} alt={`The congregation at ${branchName(branch)}`} loading="lazy" />}
+
+        <div class="card">
+          <h2>Service times</h2>
+          <ServiceTimes branch={branch} />
+        </div>
+
+        {
+          (d.pastor || hasWelcome) && (
+            <div class="card pastor">
+              {d.pastorPhoto && <img src={d.pastorPhoto} alt={d.pastor} class="pastor__photo" width="96" height="96" loading="lazy" />}
+              <div>
+                {d.pastor && (
+                  <>
+                    <span class="eyebrow">Branch pastor</span>
+                    <h2>{d.pastor}</h2>
+                  </>
+                )}
+                {hasWelcome && (
+                  <div class="prose">
+                    <Content />
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        }
+
+        <div>
+          <h2>Upcoming at {d.town}</h2>
+          {
+            events.length > 0 ? (
+              <div class="grid" data-upcoming>
+                {events.map((e) => (
+                  <EventCard event={e} branchName={branchIdFromRef(e.data.branch) ? d.town : undefined} />
+                ))}
+              </div>
+            ) : (
+              <p class="empty">No upcoming events at this branch yet.</p>
+            )
+          }
+        </div>
+      </div>
+
+      <aside class="branch-side">
+        {
+          embed && (
+            <div class="map">
+              <iframe
+                src={embed}
+                title={`Map showing ${branchName(branch)}`}
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          )
+        }
+
+        <div class="card">
+          <h3>Contact this branch</h3>
+          <ul class="contact-list">
+            {d.phone && <li><Icon name="phone" /><a href={tel}>{d.phone}</a></li>}
+            {d.whatsapp && <li><Icon name="whatsapp" /><a href={wa} target="_blank" rel="noopener">WhatsApp {d.whatsapp}</a></li>}
+            {d.email && <li><Icon name="mail" /><a href={`mailto:${d.email}`}>{d.email}</a></li>}
+            {d.address && <li><Icon name="pin" /><span>{d.address}</span></li>}
+          </ul>
+          {!d.phone && !d.whatsapp && !d.email && <p class="card__meta">Contact details coming soon. You can also <a href="/contact/">message the church office</a>.</p>}
+        </div>
+
+        <Paybill
+          title={`Give to ${d.town}`}
+          paybill={d.paybill}
+          accounts={d.accounts}
+          note={d.paybill ? `Your gift goes to the ${d.town} branch.` : undefined}
+        />
+        {
+          settings.centralPaybill && (
+            <p class="card__meta">
+              Giving to the whole church instead? <a href="/give/">See the main Paybill</a>.
+            </p>
+          )
+        }
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+  document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
+    if ((el.dataset.ends ?? "") < today) el.remove();
+  });
+</script>
+
+<style>
+  .branch-actions {
+    margin-top: 1.25rem;
+  }
+
+  .branch-layout {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 960px) {
+    .branch-layout {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      align-items: start;
+      gap: 2rem;
+    }
+  }
+
+  .branch-main,
+  .branch-side {
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .branch-photo {
+    width: 100%;
+    border-radius: var(--radius);
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .pastor {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 560px) {
+    .pastor {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+  }
+
+  .pastor__photo {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .map {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    aspect-ratio: 4 / 3;
+    background: var(--sky-100);
+  }
+
+  .map iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .contact-list li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-list :global(svg) {
+    width: 1.15em;
+    height: 1.15em;
+    color: var(--blue-600);
+    flex: none;
+  }
+</style>

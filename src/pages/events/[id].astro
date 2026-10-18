@@ -1,0 +1,82 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Icon from "../../components/Icon.astro";
+import { findBranch, formatDate, formatTime, getBranches, mapLink, type ChurchEvent } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const events = await getCollection("events");
+  return events.map((event) => ({ params: { id: event.id }, props: { event } }));
+}
+
+const { event } = Astro.props as { event: ChurchEvent };
+const d = event.data;
+const { Content } = await render(event);
+const branch = findBranch(await getBranches(), d.branch);
+const long = { weekday: "long", month: "long" } as const;
+const when = d.endDate ? `${formatDate(d.date, long)} – ${formatDate(d.endDate, long)}` : formatDate(d.date, long);
+const time = /^\d{1,2}:\d{2}$/.test(d.time) ? formatTime(d.time) : d.time;
+---
+
+<Base title={d.title} description={d.summary || `${d.title} — ${when}`} image={d.image || undefined}>
+  <PageHead eyebrow={branch ? `${branch.data.town} branch` : "All branches"} title={d.title} intro={[when, time].filter(Boolean).join(" · ")}>
+    {
+      d.registerLink && (
+        <div class="btn-row event-actions">
+          <a class="btn btn--gold" href={d.registerLink} target="_blank" rel="noopener">Register</a>
+        </div>
+      )
+    }
+  </PageHead>
+  <section class="section">
+    <div class="wrap event">
+      {d.image && <img src={d.image} alt="" class="event__image" />}
+      <div class="card event__facts">
+        <p><Icon name="calendar" /> {when}{time && <> · {time}</>}</p>
+        {d.venue && <p><Icon name="pin" /> {d.venue}</p>}
+        {branch && <p><Icon name="arrow" /> <a href={`/branches/${branch.id}/`}>{branch.data.town} branch</a>{mapLink(branch) && <> · <a href={mapLink(branch)} target="_blank" rel="noopener">Directions</a></>}</p>}
+      </div>
+      {d.summary && <p class="lead">{d.summary}</p>}
+      <div class="prose"><Content /></div>
+      <p><a href="/events/">← All events</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .event-actions {
+    margin-top: 1.25rem;
+  }
+
+  .event {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 52rem;
+  }
+
+  .event__image {
+    width: 100%;
+    border-radius: var(--radius);
+  }
+
+  .event__facts {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .event__facts p {
+    margin: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .event__facts :global(svg) {
+    width: 1.1em;
+    height: 1.1em;
+    color: var(--blue-600);
+    flex: none;
+  }
+</style>

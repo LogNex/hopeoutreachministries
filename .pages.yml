@@ -1,0 +1,190 @@
+# Pages CMS — the website editor (https://app.pagescms.org).
+# The church's editor signs in there and edits content through forms; every save is a
+# commit to this repo, and Cloudflare rebuilds the site within a couple of minutes.
+# Field names must match src/content.config.ts.
+
+media:
+  input: public/images/uploads
+  output: /images/uploads
+  extensions: [jpg, jpeg, png, webp, svg, mp3, m4a]
+
+components:
+  service:
+    type: object
+    label: Service
+    fields:
+      - name: day
+        label: Day
+        type: select
+        required: true
+        options: { values: [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday] }
+      - { name: time, label: "Start time (24-hour, e.g. 09:30)", type: string, required: true, pattern: { regex: "^\\d{1,2}:\\d{2}$", message: "Use 24-hour time, e.g. 09:30 or 14:00" } }
+      - { name: endTime, label: "End time (optional, 24-hour)", type: string }
+      - { name: name, label: "Service name (e.g. First Service, Youth Service)", type: string, required: true }
+      - name: language
+        label: Language
+        type: select
+        required: true
+        options: { values: [English, Kiswahili, "English & Kiswahili"] }
+  account:
+    type: object
+    label: Account
+    fields:
+      - { name: label, label: "What it's for (e.g. Tithe)", type: string, required: true }
+      - { name: account, label: "Account number to type (e.g. TITHE)", type: string, required: true }
+
+content:
+  - name: settings
+    label: Church settings
+    type: file
+    path: src/data/settings.json
+    format: json
+    fields:
+      - { name: siteName, label: Church name, type: string, required: true }
+      - { name: tagline, label: Tagline (shown on the home page), type: string }
+      - { name: logo, label: Logo (leave empty until the logo is ready), type: image }
+      - { name: announcement, label: "Announcement bar (leave empty to hide)", type: string }
+      - { name: announcementLink, label: Announcement link (optional), type: string }
+      - { name: phone, label: "Church office phone (e.g. 0712 345 678)", type: string }
+      - { name: whatsapp, label: "Church WhatsApp number (shows the green chat button)", type: string }
+      - { name: email, label: Church email, type: string }
+      - { name: headOffice, label: Head office address, type: string }
+      - { name: facebookUrl, label: "Facebook Page link (https://www.facebook.com/...)", type: string }
+      - { name: youtubeUrl, label: YouTube channel link (optional), type: string }
+      - { name: centralPaybill, label: Main church Paybill number, type: string }
+      - name: centralAccounts
+        label: Main Paybill account numbers
+        component: account
+        list: true
+      - name: liveServices
+        label: Livestream times (Facebook)
+        type: object
+        list: true
+        fields:
+          - name: day
+            label: Day
+            type: select
+            required: true
+            options: { values: [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday] }
+          - { name: time, label: "Start time (24-hour, e.g. 10:00)", type: string, required: true }
+          - { name: name, label: Service name, type: string, required: true }
+      - { name: formAccessKey, label: "Web3Forms access key (makes the prayer and contact forms send email)", type: string }
+
+  - name: branches
+    label: Branches
+    type: collection
+    path: src/content/branches
+    format: yaml-frontmatter
+    filename: "{fields.town}.md"
+    view:
+      fields: [town, pastor, paybill]
+      primary: town
+      sort: [order, town]
+    fields:
+      - { name: town, label: Town, type: string, required: true }
+      - { name: order, label: "Order on the site (1 = first)", type: number }
+      - { name: county, label: County, type: string }
+      - { name: address, label: "Address or landmark (e.g. Opposite Total petrol station, Kenyatta Ave)", type: string }
+      - { name: mapLink, label: "Google Maps link (Share → Copy link)", type: string }
+      - { name: latitude, label: "Latitude (for 'nearest branch', e.g. -1.2921)", type: number }
+      - { name: longitude, label: "Longitude (e.g. 36.8219)", type: number }
+      - { name: pastor, label: Branch pastor, type: string }
+      - { name: pastorPhoto, label: Pastor's photo, type: image }
+      - { name: photo, label: Branch photo, type: image }
+      - { name: phone, label: Branch phone, type: string }
+      - { name: whatsapp, label: Branch WhatsApp, type: string }
+      - { name: email, label: Branch email, type: string }
+      - { name: paybill, label: Branch Paybill number, type: string }
+      - { name: accounts, label: Branch Paybill account numbers, component: account, list: true }
+      - { name: services, label: Service times, component: service, list: true }
+      - { name: body, label: Welcome note from the pastor, type: rich-text }
+
+  - name: events
+    label: Events
+    type: collection
+    path: src/content/events
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{fields.title}.md"
+    view:
+      fields: [title, date, branch]
+      primary: title
+      sort: [date]
+    fields:
+      - { name: title, label: Title, type: string, required: true }
+      - { name: date, label: Date, type: date, required: true }
+      - { name: endDate, label: "End date (for events over several days)", type: date }
+      - { name: time, label: "Time (e.g. 18:00, or 'All night')", type: string }
+      - name: branch
+        label: "Branch (leave empty for all branches)"
+        type: reference
+        options: { collection: branches, search: town, label: "{fields.town}" }
+      - { name: venue, label: Venue, type: string }
+      - { name: image, label: Poster or photo, type: image }
+      - { name: registerLink, label: Registration link (optional), type: string }
+      - { name: summary, label: One-line summary, type: string }
+      - { name: body, label: Details, type: rich-text }
+
+  - name: sermons
+    label: Sermons
+    type: collection
+    path: src/content/sermons
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{fields.title}.md"
+    view:
+      fields: [title, date, speaker]
+      primary: title
+      sort: [date]
+    fields:
+      - { name: title, label: Title, type: string, required: true }
+      - { name: date, label: Date preached, type: date, required: true }
+      - { name: speaker, label: Speaker, type: string }
+      - { name: series, label: Series (optional), type: string }
+      - { name: scripture, label: "Scripture (e.g. John 3:16-21)", type: string }
+      - name: branch
+        label: Branch where it was preached (optional)
+        type: reference
+        options: { collection: branches, search: town, label: "{fields.town}" }
+      - { name: video, label: "Facebook or YouTube video link", type: string }
+      - { name: audio, label: Audio file (optional), type: file }
+      - { name: summary, label: One-line summary, type: string }
+      - { name: body, label: Sermon notes (optional), type: rich-text }
+
+  - name: pages
+    label: Pages
+    type: group
+    items:
+      - name: about
+        label: About us
+        type: file
+        path: src/content/pages/about.md
+        format: yaml-frontmatter
+        fields:
+          - { name: title, label: Title, type: string, required: true }
+          - { name: intro, label: Intro line, type: string }
+          - name: leaders
+            label: Leaders
+            type: object
+            list: true
+            fields:
+              - { name: name, label: Name, type: string, required: true }
+              - { name: role, label: "Role (e.g. Senior Pastor)", type: string }
+              - { name: photo, label: Photo, type: image }
+          - { name: body, label: "Page text (story, vision, mission, beliefs)", type: rich-text }
+      - name: new-here
+        label: New here?
+        type: file
+        path: src/content/pages/new-here.md
+        format: yaml-frontmatter
+        fields:
+          - { name: title, label: Title, type: string, required: true }
+          - { name: intro, label: Intro line, type: string }
+          - { name: body, label: Page text, type: rich-text }
+      - name: privacy
+        label: Privacy notice
+        type: file
+        path: src/content/pages/privacy.md
+        format: yaml-frontmatter
+        fields:
+          - { name: title, label: Title, type: string, required: true }
+          - { name: intro, label: Intro line, type: string }
+          - { name: body, label: Page text, type: rich-text }

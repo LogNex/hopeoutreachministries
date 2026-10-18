@@ -1,0 +1,100 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import SermonCard from "../../components/SermonCard.astro";
+import { settings } from "../../lib/site";
+
+const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const series = [...new Set(sermons.map((s) => s.data.series).filter(Boolean))].sort();
+---
+
+<Base title="Sermons" description={`Watch and listen to sermons from ${settings.siteName}.`}>
+  <PageHead eyebrow="Messages" title="Sermons" intro="Watch or listen again to recent messages." />
+  <section class="section">
+    <div class="wrap">
+      {
+        sermons.length > 0 ? (
+          <>
+            <div class="filters">
+              <label class="field">
+                <span>Search</span>
+                <input class="input" type="search" placeholder="Title, speaker or scripture" data-search />
+              </label>
+              {series.length > 0 && (
+                <label class="field">
+                  <span>Series</span>
+                  <select class="input" data-series>
+                    <option value="">All series</option>
+                    {series.map((s) => <option>{s}</option>)}
+                  </select>
+                </label>
+              )}
+            </div>
+            <div class="grid grid--3" data-sermons>
+              {sermons.map((s) => (
+                <div
+                  data-sermon
+                  data-series={s.data.series}
+                  data-text={[s.data.title, s.data.speaker, s.data.scripture, s.data.series].join(" ").toLowerCase()}
+                >
+                  <SermonCard sermon={s} />
+                </div>
+              ))}
+            </div>
+            <p class="empty" data-none hidden>No sermons match your search.</p>
+          </>
+        ) : (
+          <p class="empty">
+            Sermons will appear here soon. Meanwhile, find past services
+            {settings.facebookUrl ? <a href={settings.facebookUrl} target="_blank" rel="noopener">on our Facebook page</a> : "on our Facebook page"}.
+          </p>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<script>
+  const search = document.querySelector<HTMLInputElement>("[data-search]");
+  const series = document.querySelector<HTMLSelectElement>("[data-series]");
+  const items = document.querySelectorAll<HTMLElement>("[data-sermon]");
+  const none = document.querySelector<HTMLElement>("[data-none]");
+  const apply = () => {
+    const q = (search?.value ?? "").trim().toLowerCase();
+    const s = series?.value ?? "";
+    let shown = 0;
+    items.forEach((el) => {
+      const ok = (!q || (el.dataset.text ?? "").includes(q)) && (!s || el.dataset.series === s);
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    if (none) none.hidden = shown > 0;
+  };
+  search?.addEventListener("input", apply);
+  series?.addEventListener("change", apply);
+</script>
+
+<style>
+  .filters {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .filters {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      max-width: 44rem;
+    }
+  }
+
+  .filters .field span {
+    font-weight: 700;
+    color: var(--navy-800);
+  }
+
+  [data-sermon][hidden] {
+    display: none;
+  }
+</style>

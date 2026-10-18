@@ -1,0 +1,49 @@
+---
+// Facebook and YouTube players are heavy on mobile data and set trackers, so nothing loads
+// until the visitor taps Play.
+import Icon from "./Icon.astro";
+import { videoEmbed, videoSource } from "../lib/site";
+
+interface Props {
+  url: string;
+  title: string;
+}
+const { url, title } = Astro.props;
+const src = videoEmbed(url);
+const source = videoSource(url);
+---
+
+{
+  src ? (
+    <div class="embed" data-embed={src} data-title={title}>
+      <div class="embed__placeholder">
+        <button class="btn btn--gold" type="button" data-play>
+          <Icon name="play" /> Play video
+        </button>
+        <p>Plays from {source}. Uses mobile data.</p>
+        <a class="btn btn--light btn--small" href={url} target="_blank" rel="noopener">
+          Open in {source} app
+        </a>
+      </div>
+    </div>
+  ) : (
+    url && (
+      <a class="btn btn--blue" href={url} target="_blank" rel="noopener">
+        <Icon name="play" /> Watch
+      </a>
+    )
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-embed]").forEach((box) => {
+    box.querySelector("[data-play]")?.addEventListener("click", () => {
+      const frame = document.createElement("iframe");
+      frame.src = box.dataset.embed + (box.dataset.embed!.includes("?") ? "&" : "?") + "autoplay=1";
+      frame.title = box.dataset.title ?? "Video";
+      frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      frame.allowFullscreen = true;
+      box.replaceChildren(frame);
+    });
+  });
+</script>

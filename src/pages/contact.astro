@@ -1,0 +1,98 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import MessageForm from "../components/MessageForm.astro";
+import Icon from "../components/Icon.astro";
+import { getBranches, settings, telLink, whatsappLink } from "../lib/site";
+
+const branches = await getBranches();
+---
+
+<Base title="Contact" description={`Contact ${settings.siteName} and its branches.`}>
+  <PageHead eyebrow="Get in touch" title="Contact us" intro="Send the church office a message, or reach your branch directly." />
+  <section class="section">
+    <div class="wrap contact">
+      <div>
+        <h2>Send a message</h2>
+        <MessageForm kind="contact" />
+      </div>
+      <aside class="contact__side">
+        <div class="card">
+          <h3>Church office</h3>
+          <ul class="contact-list">
+            {settings.headOffice && <li><Icon name="pin" /><span>{settings.headOffice}</span></li>}
+            {settings.phone && <li><Icon name="phone" /><a href={telLink(settings.phone)}>{settings.phone}</a></li>}
+            {settings.whatsapp && <li><Icon name="whatsapp" /><a href={whatsappLink(settings.whatsapp)} target="_blank" rel="noopener">WhatsApp {settings.whatsapp}</a></li>}
+            {settings.email && <li><Icon name="mail" /><a href={`mailto:${settings.email}`}>{settings.email}</a></li>}
+            {settings.facebookUrl && <li><Icon name="facebook" /><a href={settings.facebookUrl} target="_blank" rel="noopener">Facebook</a></li>}
+          </ul>
+          {!settings.headOffice && !settings.phone && !settings.whatsapp && !settings.email && <p class="card__meta">Contact details coming soon.</p>}
+        </div>
+        <div class="card">
+          <h3>Branches</h3>
+          <ul class="branch-contacts">
+            {
+              branches.map((b) => (
+                <li>
+                  <a href={`/branches/${b.id}/`}>{b.data.town}</a>
+                  {b.data.phone && <a class="card__meta" href={telLink(b.data.phone)}>{b.data.phone}</a>}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .contact {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 960px) {
+    .contact {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .contact__side {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .contact-list,
+  .branch-contacts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .contact-list li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-list :global(svg) {
+    width: 1.15em;
+    height: 1.15em;
+    color: var(--blue-600);
+    flex: none;
+  }
+
+  .branch-contacts li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--sky-100);
+  }
+</style>

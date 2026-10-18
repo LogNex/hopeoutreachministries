@@ -1,0 +1,129 @@
+---
+// Shows the next livestreamed service, worked out in the visitor's browser in Nairobi time
+// (so it stays right between site rebuilds).
+import { DAYS, formatTime, settings } from "../lib/site";
+
+interface Props {
+  dark?: boolean;
+}
+const { dark = false } = Astro.props;
+const services = settings.liveServices.filter((s) => DAYS.includes(s.day) && /^\d{1,2}:\d{2}$/.test(s.time));
+const first = services[0];
+---
+
+{
+  services.length > 0 && (
+    <div class:list={["next", { "next--dark": dark }]} data-next-service={JSON.stringify(services)}>
+      <span class="next__dot" aria-hidden="true" />
+      <p class="next__text" aria-live="polite">
+        Live every {first.day} at {formatTime(first.time)} on Facebook
+      </p>
+    </div>
+  )
+}
+
+<script>
+  type Service = { day: string; time: string; name: string };
+  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const NAIROBI_OFFSET = 3 * 60 * 60 * 1000; // EAT is UTC+3 all year
+  const LIVE_WINDOW = 2.5 * 60 * 60 * 1000;
+
+  function fmt(time: string) {
+    const [h, m] = time.split(":").map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "pm" : "am"}`;
+  }
+
+  function next(services: Service[]) {
+    const nowUtc = Date.now();
+    const local = new Date(nowUtc + NAIROBI_OFFSET); // read with getUTC* = Nairobi wall clock
+    let best: { s: Service; start: number } | null = null;
+    for (const s of services) {
+      const [h, m] = s.time.split(":").map(Number);
+      const day = DAYS.indexOf(s.day);
+      for (const weekOffset of [-7, 0, 7]) {
+        const delta = ((day - local.getUTCDay() + 7) % 7) + weekOffset;
+        const start =
+          Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + delta, h, m) - NAIROBI_OFFSET;
+        if (start + LIVE_WINDOW < nowUtc) continue;
+        if (!best || start < best.start) best = { s, start };
+      }
+    }
+    return best;
+  }
+
+  function until(ms: number) {
+    const mins = Math.round(ms / 60000);
+    if (mins < 60) return `in ${mins} min`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `in ${hrs} hr${hrs === 1 ? "" : "s"} ${mins % 60} min`;
+    const days = Math.floor(hrs / 24);
+    return `in ${days} day${days === 1 ? "" : "s"} ${hrs % 24} hr${hrs % 24 === 1 ? "" : "s"}`;
+  }
+
+  function render(box: HTMLElement) {
+    const services = JSON.parse(box.dataset.nextService ?? "[]") as Service[];
+    const n = next(services);
+    const text = box.querySelector(".next__text");
+    if (!n || !text) return;
+    const diff = n.start - Date.now();
+    if (diff <= 0) {
+      box.classList.add("is-live");
+      text.textContent = `Live now: ${n.s.name}`;
+    } else {
+      box.classList.remove("is-live");
+      text.textContent = `Next live: ${n.s.name}, ${n.s.day} ${fmt(n.s.time)} (${until(diff)})`;
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-next-service]").forEach((box) => {
+    render(box);
+    setInterval(() => render(box), 60000);
+  });
+</script>
+
+<style>
+  .next {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: var(--sky-100);
+    color: var(--navy-800);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .next--dark {
+    background: rgb(255 255 255 / 12%);
+    color: var(--white);
+  }
+
+  .next__text {
+    margin: 0;
+  }
+
+  .next__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--blue-500);
+    flex: none;
+  }
+
+  .next--dark .next__dot {
+    background: var(--gold-500);
+  }
+
+  .next.is-live .next__dot {
+    background: #e5383b;
+    box-shadow: 0 0 0 0 rgb(229 56 59 / 60%);
+    animation: pulse 1.6s infinite;
+  }
+
+  @keyframes pulse {
+    to {
+      box-shadow: 0 0 0 10px rgb(229 56 59 / 0%);
+    }
+  }
+</style>

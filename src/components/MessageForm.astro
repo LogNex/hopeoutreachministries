@@ -1,0 +1,151 @@
+---
+// Prayer requests and contact messages are emailed to the church by Web3Forms
+// (settings.formAccessKey). Until a key is set, the form is replaced by WhatsApp/phone/email.
+import Icon from "./Icon.astro";
+import { getBranches, settings, telLink, whatsappLink } from "../lib/site";
+
+interface Props {
+  kind: "prayer" | "contact";
+}
+const { kind } = Astro.props;
+const branches = await getBranches();
+const key = settings.formAccessKey;
+const subject = kind === "prayer" ? "New prayer request" : "New message from the website";
+const wa = whatsappLink(settings.whatsapp);
+---
+
+{
+  key ? (
+    <form class="form" data-message-form data-kind={kind} novalidate>
+      <input type="hidden" name="access_key" value={key} />
+      <input type="hidden" name="subject" value={subject} />
+      <input type="hidden" name="from_name" value={`${settings.siteName} website`} />
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" />
+
+      <div class="field">
+        <label for={`${kind}-name`}>
+          Your name {kind === "prayer" && <span class="hint">(optional)</span>}
+        </label>
+        <input class="input" id={`${kind}-name`} name="name" autocomplete="name" required={kind === "contact"} />
+      </div>
+
+      <div class="field">
+        <label for={`${kind}-contact`}>
+          Phone or email {kind === "prayer" && <span class="hint">(optional — if you'd like us to reach you)</span>}
+        </label>
+        <input class="input" id={`${kind}-contact`} name="contact" autocomplete="tel" required={kind === "contact"} />
+      </div>
+
+      <div class="field">
+        <label for={`${kind}-branch`}>Your branch</label>
+        <select class="input" id={`${kind}-branch`} name="branch">
+          <option value="">I'm not sure / none</option>
+          {branches.map((b) => (
+            <option value={b.data.town}>{b.data.town}</option>
+          ))}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for={`${kind}-message`}>{kind === "prayer" ? "Your prayer request" : "Your message"}</label>
+        <textarea class="input" id={`${kind}-message`} name="message" required />
+      </div>
+
+      {kind === "prayer" && (
+        <fieldset class="field">
+          <legend>Who may see this?</legend>
+          <label class="choice">
+            <input type="radio" name="sharing" value="Pastoral team only" checked />
+            <span>Only the pastoral team</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="sharing" value="May be prayed for in church (first name only)" />
+            <span>It may also be prayed for in church, using my first name only</span>
+          </label>
+        </fieldset>
+      )}
+
+      <label class="choice">
+        <input type="checkbox" name="consent" value="yes" required />
+        <span>
+          I agree that {settings.siteName} may use these details to {kind === "prayer" ? "pray for me and follow up" : "reply to me"}, as
+          described in the <a href="/privacy/">privacy notice</a>.
+        </span>
+      </label>
+
+      <div>
+        <button class="btn btn--blue" type="submit">
+          {kind === "prayer" ? "Send prayer request" : "Send message"}
+        </button>
+      </div>
+      <p class="form-status" data-status role="status" hidden />
+    </form>
+  ) : (
+    <div class="card">
+      <h3>{kind === "prayer" ? "Send us your prayer request" : "Get in touch"}</h3>
+      <p class="card__meta">Reach the church office directly:</p>
+      <div class="btn-row">
+        {wa && (
+          <a class="btn btn--blue" href={wa} target="_blank" rel="noopener">
+            <Icon name="whatsapp" /> WhatsApp
+          </a>
+        )}
+        {settings.phone && (
+          <a class="btn btn--outline" href={telLink(settings.phone)}>
+            <Icon name="phone" /> Call
+          </a>
+        )}
+        {settings.email && (
+          <a class="btn btn--outline" href={`mailto:${settings.email}`}>
+            <Icon name="mail" /> Email
+          </a>
+        )}
+      </div>
+      {!wa && !settings.phone && !settings.email && <p class="empty">Contact details coming soon.</p>}
+    </div>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLFormElement>("[data-message-form]").forEach((form) => {
+    const status = form.querySelector<HTMLElement>("[data-status]")!;
+    const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+    const show = (state: "ok" | "error", text: string) => {
+      status.dataset.state = state;
+      status.textContent = text;
+      status.hidden = false;
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      button.disabled = true;
+      const label = button.textContent;
+      button.textContent = "Sending…";
+      try {
+        const res = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false) throw new Error(json.message || "Failed");
+        form.reset();
+        show(
+          "ok",
+          form.dataset.kind === "prayer"
+            ? "Thank you. Your request has reached the pastoral team, and we are praying with you."
+            : "Thank you — your message has been sent. We'll get back to you soon.",
+        );
+      } catch {
+        show("error", "Sorry, that didn't send. Please check your connection and try again, or reach us on WhatsApp.");
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    });
+  });
+</script>

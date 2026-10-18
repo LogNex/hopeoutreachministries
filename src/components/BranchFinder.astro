@@ -1,0 +1,89 @@
+---
+// Wraps a list of BranchCards. "Find my nearest branch" sorts them by distance using the
+// phone's location — nothing leaves the browser. Branches without coordinates go last.
+import Icon from "./Icon.astro";
+---
+
+<div class="finder" data-finder>
+  <div class="finder__bar">
+    <button class="btn btn--blue" type="button" data-locate>
+      <Icon name="locate" /> Find my nearest branch
+    </button>
+    <p class="finder__status card__meta" data-status aria-live="polite"></p>
+  </div>
+  <div class="grid grid--3" data-list>
+    <slot />
+  </div>
+</div>
+
+<script>
+  function km(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const r = (d: number) => (d * Math.PI) / 180;
+    const a =
+      Math.sin(r(lat2 - lat1) / 2) ** 2 +
+      Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(r(lng2 - lng1) / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(a));
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-finder]").forEach((finder) => {
+    const button = finder.querySelector<HTMLButtonElement>("[data-locate]")!;
+    const status = finder.querySelector<HTMLElement>("[data-status]")!;
+    const list = finder.querySelector<HTMLElement>("[data-list]")!;
+    const cards = [...list.querySelectorAll<HTMLElement>("[data-branch-card]")];
+    const located = cards.filter((c) => c.dataset.lat && c.dataset.lng);
+
+    if (!("geolocation" in navigator) || located.length === 0) {
+      button.hidden = true;
+      return;
+    }
+
+    button.addEventListener("click", () => {
+      status.textContent = "Finding your location…";
+      button.disabled = true;
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          const withDistance = cards.map((card) => {
+            const lat = Number(card.dataset.lat);
+            const lng = Number(card.dataset.lng);
+            const has = card.dataset.lat !== "" && card.dataset.lng !== "";
+            const d = has ? km(coords.latitude, coords.longitude, lat, lng) : Infinity;
+            const badge = card.querySelector<HTMLElement>("[data-distance]");
+            if (badge && has) {
+              badge.textContent = d < 1 ? "Less than 1 km away" : `About ${Math.round(d)} km away`;
+              badge.hidden = false;
+            }
+            return { card, d };
+          });
+          withDistance.sort((a, b) => a.d - b.d).forEach(({ card }) => list.appendChild(card));
+          const nearest = withDistance[0];
+          const town = nearest.card.querySelector("h3")?.textContent?.trim();
+          status.textContent = town ? `Your nearest branch is ${town}.` : "";
+          button.disabled = false;
+        },
+        () => {
+          status.textContent = "We couldn't get your location. Pick your town from the list below.";
+          button.disabled = false;
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
+      );
+    });
+  });
+</script>
+
+<style>
+  .finder__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .finder__status {
+    margin: 0;
+  }
+
+  .finder__status:empty {
+    display: none;
+  }
+</style>

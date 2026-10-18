@@ -1,0 +1,180 @@
+---
+import Icon from "./Icon.astro";
+import { getBranches, settings, telLink, whatsappLink } from "../lib/site";
+
+const branches = await getBranches();
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap site-footer__grid">
+    <div>
+      <p class="site-footer__name">{settings.siteName}</p>
+      <p class="site-footer__tag">{settings.tagline}</p>
+      <div class="site-footer__social">
+        {
+          settings.facebookUrl && (
+            <a href={settings.facebookUrl} rel="noopener" target="_blank">
+              <Icon name="facebook" label="Facebook" />
+            </a>
+          )
+        }
+        {
+          settings.youtubeUrl && (
+            <a href={settings.youtubeUrl} rel="noopener" target="_blank">
+              <Icon name="youtube" label="YouTube" />
+            </a>
+          )
+        }
+        {
+          settings.whatsapp && (
+            <a href={whatsappLink(settings.whatsapp)} rel="noopener" target="_blank">
+              <Icon name="whatsapp" label="WhatsApp" />
+            </a>
+          )
+        }
+      </div>
+    </div>
+
+    <nav aria-label="Branches">
+      <p class="site-footer__h">Our branches</p>
+      <ul>
+        {
+          branches.map((b) => (
+            <li>
+              <a href={`/branches/${b.id}/`}>{b.data.town}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav aria-label="Quick links">
+      <p class="site-footer__h">Quick links</p>
+      <ul>
+        <li><a href="/new-here/">New here?</a></li>
+        <li><a href="/live/">Watch live</a></li>
+        <li><a href="/sermons/">Sermons</a></li>
+        <li><a href="/events/">Events</a></li>
+        <li><a href="/give/">Give</a></li>
+        <li><a href="/prayer/">Prayer request</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <p class="site-footer__h">Contact</p>
+      <ul>
+        {settings.headOffice && <li>{settings.headOffice}</li>}
+        {
+          settings.phone && (
+            <li>
+              <a href={telLink(settings.phone)}>{settings.phone}</a>
+            </li>
+          )
+        }
+        {
+          settings.email && (
+            <li>
+              <a href={`mailto:${settings.email}`}>{settings.email}</a>
+            </li>
+          )
+        }
+        <li><a href="/contact/">Send us a message</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap site-footer__base">
+    <span>© {year} {settings.siteName}</span>
+    <a href="/privacy/">Privacy notice</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--navy-900);
+    color: var(--sky-200);
+    padding: 3rem 0 1.5rem;
+    margin-top: auto;
+  }
+
+  .site-footer a {
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    text-decoration: underline;
+    color: var(--white);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 640px) {
+    .site-footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 960px) {
+    .site-footer__grid {
+      grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+    }
+  }
+
+  .site-footer__name {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .site-footer__tag {
+    margin-bottom: 1rem;
+  }
+
+  .site-footer__h {
+    color: var(--gold-500);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .site-footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .site-footer__social {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .site-footer__social a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 10%);
+  }
+
+  .site-footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-top: 1px solid rgb(255 255 255 / 12%);
+    margin-top: 2.5rem;
+    padding-top: 1.25rem;
+    font-size: 0.9rem;
+  }
+</style>

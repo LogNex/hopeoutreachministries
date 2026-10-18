@@ -1,0 +1,54 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import MessageForm from "../components/MessageForm.astro";
+---
+
+<Base title="Prayer request" description="Send a prayer request to the pastoral team of Hope Outreach Ministries.">
+  <PageHead
+    eyebrow="We're here for you"
+    title="Prayer request"
+    intro="Whatever you're facing, you don't have to face it alone. Tell us how we can pray with you."
+  />
+  <section class="section">
+    <div class="wrap prayer">
+      <MessageForm kind="prayer" />
+      <aside class="card prayer__verse">
+        <p>“Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God.”</p>
+        <p class="card__meta">Philippians 4:6</p>
+        <hr />
+        <p class="card__meta">
+          Only the pastoral team reads prayer requests. Share only what you're comfortable sharing. In an emergency, call
+          999 or 112.
+        </p>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prayer {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 960px) {
+    .prayer {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .prayer__verse p:first-child {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--navy-800);
+  }
+
+  .prayer__verse hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 1rem 0;
+  }
+</style>

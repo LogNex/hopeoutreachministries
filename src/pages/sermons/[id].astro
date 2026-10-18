@@ -1,0 +1,74 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import VideoEmbed from "../../components/VideoEmbed.astro";
+import Icon from "../../components/Icon.astro";
+import { findBranch, formatDate, getBranches, type Sermon } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const sermons = await getCollection("sermons");
+  return sermons.map((sermon) => ({ params: { id: sermon.id }, props: { sermon } }));
+}
+
+const { sermon } = Astro.props as { sermon: Sermon };
+const d = sermon.data;
+const { Content } = await render(sermon);
+const branch = findBranch(await getBranches(), d.branch);
+const meta = [d.speaker, formatDate(d.date, { weekday: "long", month: "long" }), branch?.data.town].filter(Boolean).join(" · ");
+---
+
+<Base title={d.title} description={d.summary || `${d.title} — ${meta}`}>
+  <PageHead eyebrow={d.series || "Sermon"} title={d.title} intro={meta} />
+  <section class="section">
+    <div class="wrap sermon">
+      {d.video && <VideoEmbed url={d.video} title={d.title} />}
+      {
+        d.audio && (
+          <div class="card audio">
+            <h2><Icon name="headphones" /> Listen</h2>
+            <p class="card__meta">Audio uses much less data than video.</p>
+            <audio controls preload="none" src={d.audio} />
+            <p><a href={d.audio} download>Download the audio</a></p>
+          </div>
+        )
+      }
+      {d.scripture && <p class="scripture"><strong>Scripture:</strong> {d.scripture}</p>}
+      {d.summary && <p class="lead">{d.summary}</p>}
+      <div class="prose"><Content /></div>
+      <p><a href="/sermons/">← All sermons</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sermon {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 52rem;
+  }
+
+  .audio h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+  }
+
+  .audio h2 :global(svg) {
+    color: var(--blue-600);
+  }
+
+  .audio audio {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .scripture {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--gold-500);
+    background: var(--sky-50);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+</style>

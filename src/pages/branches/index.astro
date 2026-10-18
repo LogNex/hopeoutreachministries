@@ -1,0 +1,24 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import BranchCard from "../../components/BranchCard.astro";
+import BranchFinder from "../../components/BranchFinder.astro";
+import { getBranches, settings } from "../../lib/site";
+
+const branches = await getBranches();
+---
+
+<Base title="Our branches" description={`Service times and directions for all ${branches.length} branches of ${settings.siteName}.`}>
+  <PageHead
+    eyebrow="Find us"
+    title="Our branches"
+    intro={`${settings.siteName} meets in ${branches.length} towns across Kenya. Find the one nearest you.`}
+  />
+  <section class="section">
+    <div class="wrap">
+      <BranchFinder>
+        {branches.map((b) => <BranchCard branch={b} />)}
+      </BranchFinder>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,71 @@
+---
+import { formatTime, servicesByDay, type Branch } from "../lib/site";
+
+interface Props {
+  branch: Branch;
+  compact?: boolean;
+}
+const { branch, compact = false } = Astro.props;
+const days = servicesByDay(branch);
+---
+
+{
+  days.length === 0 ? (
+    <p class="card__meta">Service times coming soon.</p>
+  ) : (
+    <dl class:list={["services", { "services--compact": compact }]}>
+      {days.map(([day, services]) => (
+        <div class="services__day">
+          <dt>{day}</dt>
+          {services.map((s) => (
+            <dd>
+              <span class="services__time">
+                {formatTime(s.time)}
+                {s.endTime && !compact && <> – {formatTime(s.endTime)}</>}
+              </span>
+              <span class="services__name">{s.name}</span>
+              <span class="pill">{s.language}</span>
+            </dd>
+          ))}
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+<style>
+  .services {
+    margin: 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .services--compact {
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .services__day dt {
+    font-weight: 700;
+    color: var(--navy-800);
+    margin-bottom: 0.2rem;
+  }
+
+  .services dd {
+    margin: 0 0 0.3rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+  }
+
+  .services__time {
+    font-weight: 700;
+    color: var(--blue-700);
+    min-width: 5.5rem;
+  }
+
+  .services__name {
+    color: var(--ink);
+  }
+</style>

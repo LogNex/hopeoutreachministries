@@ -1,0 +1,75 @@
+---
+import Icon from "./Icon.astro";
+import { formatDate, type Sermon } from "../lib/site";
+
+interface Props {
+  sermon: Sermon;
+}
+const { sermon } = Astro.props;
+const d = sermon.data;
+---
+
+<article class="card card--link sermon-card">
+  <div class="sermon-card__thumb" aria-hidden="true">
+    <Icon name="play" />
+  </div>
+  <div>
+    {d.series && <span class="eyebrow">{d.series}</span>}
+    <h3><a href={`/sermons/${sermon.id}/`}>{d.title}</a></h3>
+    <p class="card__meta">
+      {[d.speaker, formatDate(d.date), d.scripture].filter(Boolean).join(" · ")}
+    </p>
+    <p class="sermon-card__media">
+      {d.video && <span class="pill">Video</span>}
+      {d.audio && <span class="pill"><Icon name="headphones" /> Audio</span>}
+    </p>
+  </div>
+</article>
+
+<style>
+  .sermon-card {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .sermon-card__thumb {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-sm);
+    display: grid;
+    place-items: center;
+    color: var(--white);
+    background: radial-gradient(circle at 30% 20%, var(--blue-600), var(--navy-900));
+  }
+
+  .sermon-card__thumb :global(svg) {
+    width: 56px;
+    height: 56px;
+  }
+
+  .sermon-card h3 a {
+    color: var(--navy-800);
+    text-decoration: none;
+  }
+
+  .sermon-card h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .sermon-card .card__meta {
+    margin-bottom: 0.4rem;
+  }
+
+  .sermon-card__media {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .sermon-card__media :global(svg) {
+    width: 0.9em;
+    height: 0.9em;
+    vertical-align: -0.1em;
+  }
+</style>

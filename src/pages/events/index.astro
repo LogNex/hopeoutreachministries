@@ -1,0 +1,76 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import EventCard from "../../components/EventCard.astro";
+import { branchIdFromRef, findBranch, getBranches, isoDay, settings } from "../../lib/site";
+
+const branches = await getBranches();
+const today = isoDay(new Date());
+const events = (await getCollection("events"))
+  .filter((e) => isoDay(e.data.endDate ?? e.data.date) >= today)
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+---
+
+<Base title="Events" description={`Upcoming events at ${settings.siteName} branches.`}>
+  <PageHead eyebrow="What's on" title="Events" intro="Conferences, crusades, keshas, youth camps and more, across all our branches." />
+  <section class="section">
+    <div class="wrap">
+      {
+        events.length > 0 && (
+          <div class="field branch-filter">
+            <label for="event-branch">Show events for</label>
+            <select class="input" id="event-branch" data-filter>
+              <option value="">All branches</option>
+              {branches.map((b) => <option value={b.id}>{b.data.town}</option>)}
+            </select>
+          </div>
+        )
+      }
+      <div class="grid grid--2" data-upcoming>
+        {
+          events.map((e) => (
+            <div data-event-wrap data-branch={branchIdFromRef(e.data.branch)}>
+              <EventCard event={e} branchName={findBranch(branches, e.data.branch)?.data.town} />
+            </div>
+          ))
+        }
+      </div>
+      <p class="empty" data-none hidden={events.length > 0}>No upcoming events yet — check back soon.</p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+  document.querySelectorAll<HTMLElement>("[data-event-wrap]").forEach((wrap) => {
+    const ends = wrap.querySelector<HTMLElement>("[data-event]")?.dataset.ends ?? "";
+    if (ends < today) wrap.remove();
+  });
+
+  const filter = document.querySelector<HTMLSelectElement>("[data-filter]");
+  const none = document.querySelector<HTMLElement>("[data-none]");
+  const apply = () => {
+    const wraps = document.querySelectorAll<HTMLElement>("[data-event-wrap]");
+    let shown = 0;
+    wraps.forEach((w) => {
+      const ok = !filter?.value || w.dataset.branch === "" || w.dataset.branch === filter.value;
+      w.hidden = !ok;
+      if (ok) shown++;
+    });
+    if (none) none.hidden = shown > 0;
+  };
+  filter?.addEventListener("change", apply);
+  apply();
+</script>
+
+<style>
+  .branch-filter {
+    max-width: 22rem;
+    margin-bottom: 1.5rem;
+  }
+
+  [data-event-wrap][hidden] {
+    display: none;
+  }
+</style>

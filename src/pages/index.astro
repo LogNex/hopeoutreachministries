@@ -1,0 +1,263 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import BranchCard from "../components/BranchCard.astro";
+import BranchFinder from "../components/BranchFinder.astro";
+import EventCard from "../components/EventCard.astro";
+import SermonCard from "../components/SermonCard.astro";
+import NextService from "../components/NextService.astro";
+import Icon from "../components/Icon.astro";
+import { findBranch, getBranches, isoDay, settings } from "../lib/site";
+
+const branches = await getBranches();
+const today = isoDay(new Date());
+const events = (await getCollection("events"))
+  .filter((e) => isoDay(e.data.endDate ?? e.data.date) >= today)
+  .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf())
+  .slice(0, 6);
+const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
+---
+
+<Base>
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <span class="eyebrow">Karibu · Welcome</span>
+      <h1>{settings.siteName}</h1>
+      <p class="hero__tag">{settings.tagline}</p>
+      <div class="btn-row">
+        <a class="btn btn--gold" href="#branches"><Icon name="pin" /> Find a branch near you</a>
+        <a class="btn btn--light" href="/live/"><Icon name="play" /> Watch live</a>
+      </div>
+      <NextService dark />
+      <blockquote class="hero__verse">
+        <p>“Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost.”</p>
+        <cite>Romans 15:13</cite>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="welcome">
+    <div class="wrap welcome__grid">
+      <div>
+        <h2>Join us this Sunday</h2>
+        <p>
+          We are one church meeting in {branches.length} towns across Kenya. Wherever you are, there's a family waiting to
+          welcome you.
+        </p>
+      </div>
+      <div lang="sw">
+        <h2>Karibu kanisani</h2>
+        <p>
+          Sisi ni kanisa moja lenye matawi {branches.length} kote Kenya. Ibada zetu ni kwa Kiingereza na Kiswahili.
+          Karibu uabudu pamoja nasi.
+        </p>
+      </div>
+      <div class="welcome__cta">
+        <a class="btn btn--outline" href="/new-here/">New here? What to expect</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" id="branches">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Our branches</span>
+        <h2>{branches.length} branches, one family</h2>
+        <p>Choose your town for service times, directions and how to reach the pastor.</p>
+      </div>
+      <BranchFinder>
+        {branches.map((b) => <BranchCard branch={b} />)}
+      </BranchFinder>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Upcoming</span>
+        <h2>Events</h2>
+      </div>
+      {
+        events.length > 0 ? (
+          <div class="grid grid--2" data-upcoming>
+            {events.map((e) => (
+              <EventCard event={e} branchName={findBranch(branches, e.data.branch)?.data.town} />
+            ))}
+          </div>
+        ) : (
+          <p class="empty">No upcoming events yet — check back soon.</p>
+        )
+      }
+      <p class="more"><a href="/events/">All events <Icon name="arrow" /></a></p>
+    </div>
+  </section>
+
+  <section class="section section--tint">
+    <div class="wrap">
+      <div class="section__head">
+        <span class="eyebrow">Messages</span>
+        <h2>Latest sermons</h2>
+      </div>
+      {
+        sermons.length > 0 ? (
+          <div class="grid grid--3">
+            {sermons.map((s) => <SermonCard sermon={s} />)}
+          </div>
+        ) : (
+          <p class="empty">
+            Sermons will appear here soon. Meanwhile, catch our services
+            {settings.facebookUrl ? <a href={settings.facebookUrl} target="_blank" rel="noopener">on Facebook</a> : "on Facebook"}.
+          </p>
+        )
+      }
+      <p class="more"><a href="/sermons/">All sermons <Icon name="arrow" /></a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap grid grid--2">
+      <div class="band band--give">
+        <h2>Give</h2>
+        <p>Support the work of the church — tithes, offerings and missions — by M-Pesa, to the whole church or to your branch.</p>
+        <a class="btn btn--gold" href="/give/">How to give</a>
+      </div>
+      <div class="band band--pray">
+        <h2>Can we pray with you?</h2>
+        <p>Send a prayer request. Only the pastoral team reads it, unless you choose otherwise.</p>
+        <a class="btn btn--light" href="/prayer/"><Icon name="heart" /> Send a prayer request</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // The site is built ahead of time; hide events that have finished since the last build.
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+  document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
+    if ((el.dataset.ends ?? "") < today) el.remove();
+  });
+</script>
+
+<style>
+  .hero {
+    color: var(--white);
+    background:
+      radial-gradient(ellipse at 85% 110%, rgb(242 178 51 / 35%), transparent 55%),
+      radial-gradient(circle at 10% 0%, rgb(47 116 216 / 55%), transparent 50%),
+      linear-gradient(160deg, var(--navy-800), var(--navy-900));
+    padding: clamp(3rem, 10vw, 6rem) 0 clamp(2.5rem, 8vw, 4.5rem);
+    overflow: hidden;
+  }
+
+  .hero__inner {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+
+  .hero .eyebrow {
+    color: var(--gold-500);
+    margin: 0;
+  }
+
+  .hero h1 {
+    color: var(--white);
+    margin: 0;
+    max-width: 14ch;
+    font-size: clamp(2.4rem, 8vw, 4rem);
+  }
+
+  .hero__tag {
+    font-size: clamp(1.1rem, 3vw, 1.35rem);
+    color: var(--sky-200);
+    max-width: 34rem;
+    margin: 0;
+  }
+
+  .hero__verse {
+    margin: 1rem 0 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--gold-500);
+    max-width: 36rem;
+    color: var(--sky-200);
+    font-family: var(--font-display);
+    font-style: italic;
+  }
+
+  .hero__verse p {
+    margin: 0 0 0.25rem;
+  }
+
+  .hero__verse cite {
+    font-style: normal;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold-500);
+  }
+
+  .welcome {
+    padding: clamp(2rem, 6vw, 3rem) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .welcome__grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .welcome h2 {
+    font-size: 1.4rem;
+  }
+
+  .welcome p {
+    color: var(--muted);
+    margin: 0;
+  }
+
+  @media (min-width: 900px) {
+    .welcome__grid {
+      grid-template-columns: 1fr 1fr auto;
+      align-items: center;
+      gap: 2.5rem;
+    }
+  }
+
+  .more {
+    margin: 1.25rem 0 0;
+  }
+
+  .more a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+  }
+
+  .more :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+
+  .band {
+    border-radius: var(--radius);
+    padding: clamp(1.5rem, 5vw, 2.25rem);
+    color: var(--white);
+  }
+
+  .band h2 {
+    color: var(--white);
+  }
+
+  .band p {
+    color: var(--sky-200);
+  }
+
+  .band--give {
+    background: linear-gradient(135deg, var(--blue-700), var(--blue-600));
+  }
+
+  .band--pray {
+    background: linear-gradient(135deg, var(--navy-800), var(--navy-900));
+  }
+</style>

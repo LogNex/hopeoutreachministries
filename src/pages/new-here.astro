@@ -1,0 +1,30 @@
+---
+import { getEntry, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import BranchCard from "../components/BranchCard.astro";
+import BranchFinder from "../components/BranchFinder.astro";
+import { getBranches } from "../lib/site";
+
+const page = (await getEntry("pages", "new-here"))!;
+const { Content } = await render(page);
+const branches = await getBranches();
+---
+
+<Base title={page.data.title} description={page.data.intro}>
+  <PageHead eyebrow="Karibu" title={page.data.title} intro={page.data.intro} />
+  <section class="section">
+    <div class="wrap prose"><Content /></div>
+  </section>
+  <section class="section section--tint">
+    <div class="wrap">
+      <div class="section__head">
+        <h2>Plan your visit</h2>
+        <p>Pick the branch nearest you for its service times and directions.</p>
+      </div>
+      <BranchFinder>
+        {branches.map((b) => <BranchCard branch={b} />)}
+      </BranchFinder>
+    </div>
+  </section>
+</Base>

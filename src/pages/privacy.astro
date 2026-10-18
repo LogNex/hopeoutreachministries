@@ -1,0 +1,15 @@
+---
+import { getEntry, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+
+const page = (await getEntry("pages", "privacy"))!;
+const { Content } = await render(page);
+---
+
+<Base title={page.data.title} description={page.data.intro}>
+  <PageHead title={page.data.title} intro={page.data.intro} />
+  <section class="section">
+    <div class="wrap prose"><Content /></div>
+  </section>
+</Base>

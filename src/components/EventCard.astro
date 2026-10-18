@@ -1,0 +1,105 @@
+---
+import Icon from "./Icon.astro";
+import { formatDate, formatTime, isoDay, type ChurchEvent } from "../lib/site";
+
+interface Props {
+  event: ChurchEvent;
+  branchName?: string;
+}
+const { event, branchName } = Astro.props;
+const d = event.data;
+const last = d.endDate ?? d.date;
+const day = new Intl.DateTimeFormat("en-KE", { timeZone: "Africa/Nairobi", day: "numeric" }).format(d.date);
+const month = new Intl.DateTimeFormat("en-KE", { timeZone: "Africa/Nairobi", month: "short" }).format(d.date);
+const when = d.endDate
+  ? `${formatDate(d.date, { year: undefined })} – ${formatDate(d.endDate)}`
+  : formatDate(d.date);
+---
+
+<article class="card card--link event-card" data-event data-ends={isoDay(last)}>
+  <div class="event-card__date" aria-hidden="true">
+    <span class="event-card__day">{day}</span>
+    <span class="event-card__month">{month}</span>
+  </div>
+  <div class="event-card__body">
+    <h3><a href={`/events/${event.id}/`}>{d.title}</a></h3>
+    <p class="card__meta event-card__when">
+      <Icon name="calendar" />
+      <span>{when}{d.time && <> · {/^\d{1,2}:\d{2}$/.test(d.time) ? formatTime(d.time) : d.time}</>}</span>
+    </p>
+    <p class="event-card__where">
+      <span class:list={["pill", { "pill--gold": !branchName }]}>{branchName ?? "All branches"}</span>
+      {d.venue && <span class="card__meta">{d.venue}</span>}
+    </p>
+    {d.summary && <p class="event-card__summary">{d.summary}</p>}
+  </div>
+</article>
+
+<style>
+  .event-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .event-card__date {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    padding: 0.5rem 0;
+    border-radius: var(--radius-sm);
+    background: var(--navy-800);
+    color: var(--white);
+    line-height: 1.1;
+  }
+
+  .event-card__day {
+    font-size: 1.6rem;
+    font-weight: 800;
+  }
+
+  .event-card__month {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-500);
+    font-weight: 700;
+  }
+
+  .event-card h3 a {
+    color: var(--navy-800);
+    text-decoration: none;
+  }
+
+  .event-card h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .event-card__when {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+
+  .event-card__when :global(svg) {
+    width: 1em;
+    height: 1em;
+    flex: none;
+  }
+
+  .event-card__where {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+
+  .event-card__summary {
+    margin: 0;
+  }
+</style>

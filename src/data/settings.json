@@ -1,0 +1,23 @@
+{
+  "siteName": "Hope Outreach Ministries",
+  "tagline": "One church, seven branches, one hope in Christ.",
+  "logo": "",
+  "announcement": "",
+  "announcementLink": "",
+  "phone": "",
+  "whatsapp": "",
+  "email": "",
+  "headOffice": "",
+  "facebookUrl": "",
+  "youtubeUrl": "",
+  "centralPaybill": "",
+  "centralAccounts": [
+    { "label": "Tithe", "account": "TITHE" },
+    { "label": "Offering", "account": "OFFERING" },
+    { "label": "Missions & outreach", "account": "MISSIONS" }
+  ],
+  "liveServices": [
+    { "day": "Sunday", "time": "10:00", "name": "Sunday Service" }
+  ],
+  "formAccessKey": ""
+}

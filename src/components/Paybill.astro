@@ -1,0 +1,150 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  title: string;
+  paybill: string;
+  accounts: { label: string; account: string }[];
+  note?: string;
+}
+const { title, paybill, accounts, note } = Astro.props;
+---
+
+<div class="card paybill">
+  <h3>{title}</h3>
+  {note && <p class="card__meta">{note}</p>}
+  {
+    paybill ? (
+      <>
+        <div class="paybill__row paybill__row--main">
+          <span class="paybill__label">Paybill (Business no.)</span>
+          <span class="paybill__value">{paybill}</span>
+          <button class="copy" type="button" data-copy={paybill} aria-label={`Copy Paybill number ${paybill}`}>
+            <Icon name="copy" /> <span data-copy-text>Copy</span>
+          </button>
+        </div>
+        {accounts.length > 0 && (
+          <>
+            <p class="paybill__h">Account number — choose what your gift is for:</p>
+            <ul class="paybill__accounts">
+              {accounts.map((a) => (
+                <li class="paybill__row">
+                  <span class="paybill__label">{a.label}</span>
+                  <span class="paybill__value">{a.account}</span>
+                  <button class="copy" type="button" data-copy={a.account} aria-label={`Copy account ${a.account}`}>
+                    <Icon name="copy" /> <span data-copy-text>Copy</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </>
+    ) : (
+      <p class="empty">Paybill number coming soon.</p>
+    )
+  }
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>("button[data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const text = button.querySelector<HTMLElement>("[data-copy-text]");
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? "");
+        if (text) text.textContent = "Copied";
+      } catch {
+        if (text) text.textContent = "Copy failed";
+      }
+      setTimeout(() => {
+        if (text) text.textContent = "Copy";
+      }, 2000);
+    });
+  });
+</script>
+
+<style>
+  .paybill h3 {
+    margin-bottom: 0.75rem;
+  }
+
+  .paybill__accounts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .paybill__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label copy"
+      "value copy";
+    align-items: center;
+    column-gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    background: var(--sky-50);
+    border: 1px solid var(--line);
+  }
+
+  .paybill__row--main {
+    background: var(--navy-800);
+    border-color: var(--navy-800);
+    margin-bottom: 1rem;
+  }
+
+  .paybill__row--main .paybill__label {
+    color: var(--sky-200);
+  }
+
+  .paybill__row--main .paybill__value {
+    color: var(--white);
+    font-size: 1.6rem;
+  }
+
+  .paybill__label {
+    grid-area: label;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .paybill__value {
+    grid-area: value;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: 0.04em;
+    color: var(--navy-800);
+    overflow-wrap: anywhere;
+  }
+
+  .paybill__h {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .copy {
+    grid-area: copy;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 40px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 0;
+    background: var(--gold-500);
+    color: var(--navy-900);
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .copy :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+</style>

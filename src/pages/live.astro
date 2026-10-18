@@ -1,0 +1,138 @@
+---
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import NextService from "../components/NextService.astro";
+import Icon from "../components/Icon.astro";
+import { formatTime, settings } from "../lib/site";
+
+const fb = settings.facebookUrl;
+const feed = fb
+  ? `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fb)}&tabs=timeline&width=500&height=720&small_header=true&adapt_container_width=true&hide_cover=false`
+  : "";
+---
+
+<Base title="Watch live" description={`Watch ${settings.siteName} services live on Facebook.`}>
+  <PageHead eyebrow="Online church" title="Watch live" intro="Our services stream live on Facebook. Join us from wherever you are.">
+    <div class="live-head">
+      <NextService dark />
+      {fb && <a class="btn btn--gold" href={fb} target="_blank" rel="noopener"><Icon name="facebook" /> Watch on Facebook</a>}
+    </div>
+  </PageHead>
+
+  <section class="section">
+    <div class="wrap live-layout">
+      <div>
+        {
+          feed ? (
+            <div class="fb" data-fb={feed}>
+              <div class="embed__placeholder">
+                <Icon name="facebook" />
+                <button class="btn btn--gold" type="button" data-load>Load our Facebook page here</button>
+                <p>The live video appears at the top of the page while we're streaming. Loading it uses mobile data and Facebook's cookies.</p>
+              </div>
+            </div>
+          ) : (
+            <p class="empty">Our Facebook page link is coming soon.</p>
+          )
+        }
+      </div>
+      <aside class="card">
+        <h3>Livestream times</h3>
+        <ul class="live-times">
+          {
+            settings.liveServices.map((s) => (
+              <li>
+                <Icon name="clock" />
+                <span><strong>{s.day}, {formatTime(s.time)}</strong><br />{s.name}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="card__meta">All times are Kenya time (EAT). Missed a service? Past streams stay on our Facebook page and in <a href="/sermons/">Sermons</a>.</p>
+        <p class="card__meta">Tip: on a slow connection, open the stream in the Facebook app and lower the video quality.</p>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-fb]").forEach((box) => {
+    box.querySelector("[data-load]")?.addEventListener("click", () => {
+      const frame = document.createElement("iframe");
+      frame.src = box.dataset.fb!;
+      frame.title = "Hope Outreach Ministries on Facebook";
+      frame.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
+      frame.allowFullscreen = true;
+      box.replaceChildren(frame);
+      box.classList.add("is-loaded");
+    });
+  });
+</script>
+
+<style>
+  .live-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    margin-top: 1.25rem;
+  }
+
+  .live-layout {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 960px) {
+    .live-layout {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .fb {
+    position: relative;
+    min-height: 420px;
+    max-width: 500px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--navy-800);
+  }
+
+  .fb :global(svg) {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fb.is-loaded {
+    background: var(--white);
+    height: 720px;
+  }
+
+  .fb iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .live-times {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .live-times li {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .live-times :global(svg) {
+    width: 1.2em;
+    height: 1.2em;
+    color: var(--blue-600);
+    flex: none;
+    margin-top: 0.2em;
+  }
+</style>
