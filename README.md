@@ -34,6 +34,8 @@ Someone with access to the LogNex GitHub organisation does this:
    - **Production branch:** `main`
 5. Click **Deploy**. The site goes live at `https://hopeoutreachministries.<your-account>.workers.dev`.
 
+**Done (18 Oct 2026):** live at <https://hopeoutreachministries.lekenipl.workers.dev/>.
+
 From then on, every change to `main` (including every save in the editor) redeploys the site automatically.
 
 **When the domain is chosen:** add it to Cloudflare (free plan), then go to the worker's **Settings → Domains & Routes → Add → Custom domain**. Also add a build variable `SITE_URL` (for example `https://hopeoutreach.or.ke`) under **Settings → Build → Variables**, so links shared on WhatsApp and Facebook use the real domain.
