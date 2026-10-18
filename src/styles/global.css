@@ -23,8 +23,9 @@
   --wrap: 1120px;
   --gutter: 16px;
 
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  /* Self-hosted (@fontsource-variable, imported in Base.astro); only the Latin files download. */
+  --font: "Montserrat Variable", Montserrat, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Outfit Variable", Outfit, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 *,
@@ -41,8 +42,8 @@ html {
 body {
   margin: 0;
   font-family: var(--font);
-  font-size: 1.0625rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.65;
   color: var(--ink);
   background: var(--white);
   overflow-x: hidden;
@@ -67,7 +68,9 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   color: var(--navy-800);
   margin: 0 0 0.5em;
   text-wrap: balance;

@@ -180,8 +180,7 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
     border-left: 3px solid var(--gold-500);
     max-width: 36rem;
     color: var(--sky-200);
-    font-family: var(--font-display);
-    font-style: italic;
+    font-style: italic; /* Montserrat has a true italic; Outfit doesn't */
   }
 
   .hero__verse p {
@@ -190,7 +189,6 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
 
   .hero__verse cite {
     font-style: normal;
-    font-family: var(--font);
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--gold-500);

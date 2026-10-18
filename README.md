@@ -5,6 +5,7 @@ The church website: one church, seven branches across Kenya.
 - **Site:** [Astro](https://astro.build) static site — fast, light on mobile data, nothing to patch.
 - **Editing:** [Pages CMS](https://pagescms.org) — the church's editor fills in forms; every save updates this repo.
 - **Hosting:** Cloudflare (Workers static assets) — free, unlimited bandwidth, servers in Nairobi and Mombasa. It rebuilds the site automatically about a minute after every save.
+- **Fonts:** Outfit for headings, Montserrat for text, self-hosted (no Google Fonts request).
 - **Forms:** prayer requests and contact messages are emailed to the church by [Web3Forms](https://web3forms.com) (free).
 
 ## Pages
