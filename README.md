@@ -1,6 +1,6 @@
 # Hope Outreach Ministries — website
 
-The church website: one church, seven branches across Kenya.
+The church website: one church, six branches across Kenya.
 
 - **Site:** [Astro](https://astro.build) static site — fast, light on mobile data, nothing to patch.
 - **Editing:** [Pages CMS](https://pagescms.org) — the church's editor fills in forms; every save updates this repo.
@@ -13,7 +13,7 @@ The church website: one church, seven branches across Kenya.
 | Page | What it shows |
 |---|---|
 | Home | Welcome (English and Kiswahili), branch finder, next livestream, events, latest sermons, give and prayer |
-| Branches | All 7 branches, with "Find my nearest branch" (uses the phone's location; nothing is sent anywhere) |
+| Branches | All 6 branches, with "Find my nearest branch" (uses the phone's location; nothing is sent anywhere) |
 | Each branch | Service times with language, directions and map, call and WhatsApp, pastor and welcome note, that branch's Paybill, its events |
 | Give | The main church Paybill and every branch's Paybill, copy buttons, M-Pesa steps in English and Kiswahili |
 | Live | Next livestream countdown (Kenya time) and the church's Facebook page, loaded only on tap to save data |
@@ -67,20 +67,22 @@ Until a key is set, the Prayer and Contact pages show WhatsApp, call and email b
 Everything below starts empty or as a placeholder; the site shows "coming soon" where something is missing.
 
 **Church settings**
-- [ ] Tagline (currently a placeholder: "One church, seven branches, one hope in Christ.")
+- [ ] Tagline (currently a placeholder: "One church, six branches, one hope in Christ.")
 - [ ] Office phone, WhatsApp, email, head office address
 - [ ] Facebook Page link
-- [ ] Main Paybill number, and check the account names (TITHE, OFFERING, MISSIONS are suggestions)
+- [x] Main Paybill: 222 111, account 0670 000 4229
 - [ ] Livestream day(s) and time(s) (currently Sunday 10:00 as a placeholder)
 - [ ] Logo, when ready
 
-**Each of the 7 branches** (currently "Town 1" to "Town 7")
-- [ ] Town (rename the entry), county, address or landmark
+**Each of the 6 branches:** Kathingithu, Makutano, Kilakir, Noompala, Noong'abolo, Osiligi Restoration Centre
+- [x] Branch name, sub-county and county
+- [x] Pastor's name
+- [ ] Address or landmark
 - [ ] Google Maps link, and latitude/longitude for "Find my nearest branch" (in Google Maps, long-press the church → the numbers appear at the top)
 - [ ] Service times, each with its language
-- [ ] Pastor's name and photo, and a short welcome note
+- [ ] Pastor's photo, and a short welcome note
 - [ ] Phone and WhatsApp
-- [ ] Branch Paybill number and its account names
+- [ ] Branch Paybill, only if a branch has its own (otherwise it shows the main one)
 - [ ] A photo of the congregation
 
 **Pages**

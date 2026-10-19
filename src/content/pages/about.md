@@ -1,12 +1,12 @@
 ---
 title: About us
-intro: Hope Outreach Ministries is one church with branches across Kenya.
+intro: Hope Outreach Ministries is one church with six branches across Kenya.
 leaders: []
 ---
 
 ## Our story
 
-*Tell the church's story here: when and where it began, and how it grew to its branches.*
+*Tell the church's story here: when and where it began, and how it grew to six branches.*
 
 ## Vision
 
