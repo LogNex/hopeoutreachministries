@@ -1,6 +1,6 @@
 {
   "siteName": "Hope Outreach Ministries",
-  "tagline": "One church, seven branches, one hope in Christ.",
+  "tagline": "One church across Kenya, one hope in Christ.",
   "logo": "",
   "announcement": "",
   "announcementLink": "",
@@ -10,11 +10,9 @@
   "headOffice": "",
   "facebookUrl": "",
   "youtubeUrl": "",
-  "centralPaybill": "",
+  "centralPaybill": "222 111",
   "centralAccounts": [
-    { "label": "Tithe", "account": "TITHE" },
-    { "label": "Offering", "account": "OFFERING" },
-    { "label": "Missions & outreach", "account": "MISSIONS" }
+    { "label": "Tithes, offerings and gifts", "account": "0670 000 4229" }
   ],
   "liveServices": [
     { "day": "Sunday", "time": "10:00", "name": "Sunday Service" }

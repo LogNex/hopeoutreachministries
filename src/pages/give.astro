@@ -5,47 +5,60 @@ import Paybill from "../components/Paybill.astro";
 import { getBranches, settings } from "../lib/site";
 
 const branches = await getBranches();
+// Only branches with their own Paybill get a card; the rest give through the main one.
+const ownPaybill = branches.filter((b) => b.data.paybill);
+const sharing = branches.filter((b) => !b.data.paybill).map((b) => b.data.town);
+const listTowns = (towns: string[]) =>
+  towns.length > 1 ? `${towns.slice(0, -1).join(", ")} and ${towns.at(-1)}` : (towns[0] ?? "");
 ---
 
-<Base title="Give" description={`How to give to ${settings.siteName} by M-Pesa — to the whole church or to your branch.`}>
+<Base title="Give" description={`How to give to ${settings.siteName} by M-Pesa.`}>
   <PageHead
     eyebrow="Giving"
     title="Give by M-Pesa"
-    intro="Thank you for supporting the work of the church. Give to the whole church, or to your own branch."
+    intro={ownPaybill.length
+      ? "Thank you for supporting the work of the church. Give to the whole church, or to your own branch."
+      : "Thank you for supporting the work of the church. Every branch gives through the one church Paybill below."}
   />
 
   <section class="section">
     <div class="wrap give-layout">
       <div class="give-main">
         <div>
-          <h2>To the whole church</h2>
+          {ownPaybill.length > 0 && <h2>To the whole church</h2>}
           <Paybill
             title={settings.siteName}
             paybill={settings.centralPaybill}
             accounts={settings.centralAccounts}
-            note="For church-wide ministry, missions and outreach."
+            note={!ownPaybill.length
+              ? `For all branches: ${listTowns(sharing)}.`
+              : sharing.length
+                ? `For church-wide ministry, and for gifts from ${listTowns(sharing)}.`
+                : "For church-wide ministry, missions and outreach."}
           />
         </div>
 
-        <div>
-          <h2>To your branch</h2>
-          <div class="field branch-pick">
-            <label for="branch-select">Choose your branch</label>
-            <select class="input" id="branch-select" data-branch-select>
-              <option value="">Show all branches</option>
-              {branches.map((b) => <option value={b.id}>{b.data.town}</option>)}
-            </select>
-          </div>
-          <div class="grid grid--2 branch-paybills">
-            {
-              branches.map((b) => (
-                <div data-branch-paybill={b.id}>
-                  <Paybill title={b.data.town} paybill={b.data.paybill} accounts={b.data.accounts} />
-                </div>
-              ))
-            }
-          </div>
-        </div>
+        {
+          ownPaybill.length > 0 && (
+            <div>
+              <h2>To your branch</h2>
+              <div class="field branch-pick">
+                <label for="branch-select">Choose your branch</label>
+                <select class="input" id="branch-select" data-branch-select>
+                  <option value="">Show all branches</option>
+                  {ownPaybill.map((b) => <option value={b.id}>{b.data.town}</option>)}
+                </select>
+              </div>
+              <div class="grid grid--2 branch-paybills">
+                {ownPaybill.map((b) => (
+                  <div data-branch-paybill={b.id}>
+                    <Paybill title={b.data.town} paybill={b.data.paybill} accounts={b.data.accounts} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
       </div>
 
       <aside class="give-side">
@@ -55,7 +68,7 @@ const branches = await getBranches();
             <li>Open <strong>M-PESA</strong> on your phone (SIM Toolkit or the M-PESA app).</li>
             <li>Choose <strong>Lipa na M-PESA</strong>, then <strong>Pay Bill</strong>.</li>
             <li>Enter the <strong>Business number</strong> (the Paybill above).</li>
-            <li>Enter the <strong>Account number</strong> for what your gift is for, e.g. <em>TITHE</em>.</li>
+            <li>Enter the <strong>Account number</strong> shown above.</li>
             <li>Enter the <strong>amount</strong>, then your <strong>M-PESA PIN</strong>, and confirm.</li>
           </ol>
           <p class="card__meta">You'll get an M-PESA confirmation SMS. Keep it as your receipt.</p>
@@ -67,7 +80,7 @@ const branches = await getBranches();
             <li>Fungua <strong>M-PESA</strong> kwenye simu yako.</li>
             <li>Chagua <strong>Lipa na M-PESA</strong>, kisha <strong>Pay Bill</strong>.</li>
             <li>Weka <strong>namba ya biashara</strong> (Paybill iliyo hapo juu).</li>
-            <li>Weka <strong>namba ya akaunti</strong> ya sadaka yako, kwa mfano <em>TITHE</em>.</li>
+            <li>Weka <strong>namba ya akaunti</strong> iliyo hapo juu.</li>
             <li>Weka <strong>kiasi</strong>, kisha <strong>PIN yako ya M-PESA</strong>, na uthibitishe.</li>
           </ol>
           <p class="card__meta">Utapokea ujumbe wa M-PESA wa kuthibitisha. Uhifadhi kama risiti yako.</p>

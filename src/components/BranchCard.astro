@@ -1,13 +1,14 @@
 ---
 import Icon from "./Icon.astro";
 import ServiceTimes from "./ServiceTimes.astro";
-import type { Branch } from "../lib/site";
+import { branchPlace, type Branch } from "../lib/site";
 
 interface Props {
   branch: Branch;
 }
 const { branch } = Astro.props;
 const d = branch.data;
+const place = branchPlace(branch);
 ---
 
 <article
@@ -21,13 +22,14 @@ const d = branch.data;
     <a href={`/branches/${branch.id}/`} class="branch-card__link">{d.town}</a>
   </h3>
   {
-    (d.address || d.county) && (
+    place && (
       <p class="card__meta branch-card__where">
         <Icon name="pin" />
-        <span>{[d.address, d.county].filter(Boolean).join(", ")}</span>
+        <span>{place}</span>
       </p>
     )
   }
+  {d.pastor && <p class="card__meta branch-card__pastor">{d.pastor}</p>}
   <ServiceTimes branch={branch} compact />
   <span class="branch-card__more">Branch details <Icon name="arrow" /></span>
 </article>
@@ -61,6 +63,12 @@ const d = branch.data;
     gap: 0.4rem;
     align-items: flex-start;
     margin: 0;
+  }
+
+  .branch-card__pastor {
+    margin: 0;
+    font-weight: 600;
+    color: var(--navy-800);
   }
 
   .branch-card__where :global(svg) {

@@ -1,10 +1,11 @@
 ---
-town: Town 5
-order: 5
-county: ""
+town: "Osiligi Restoration Centre"
+order: 6
+subCounty: "Mashuuru"
+county: "Kajiado"
 address: ""
 mapLink: ""
-pastor: ""
+pastor: "Reverend Nackson Letuati Umash"
 pastorPhoto: ""
 photo: ""
 phone: ""

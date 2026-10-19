@@ -81,8 +81,9 @@ content:
       primary: town
       sort: [order, town]
     fields:
-      - { name: town, label: Town, type: string, required: true }
+      - { name: town, label: "Branch name (usually the town)", type: string, required: true }
       - { name: order, label: "Order on the site (1 = first)", type: number }
+      - { name: subCounty, label: Sub-county, type: string }
       - { name: county, label: County, type: string }
       - { name: address, label: "Address or landmark (e.g. Opposite Total petrol station, Kenyatta Ave)", type: string }
       - { name: mapLink, label: "Google Maps link (Share → Copy link)", type: string }
@@ -94,7 +95,7 @@ content:
       - { name: phone, label: Branch phone, type: string }
       - { name: whatsapp, label: Branch WhatsApp, type: string }
       - { name: email, label: Branch email, type: string }
-      - { name: paybill, label: Branch Paybill number, type: string }
+      - { name: paybill, label: "Branch Paybill number (leave empty to use the main church Paybill)", type: string }
       - { name: accounts, label: Branch Paybill account numbers, component: account, list: true }
       - { name: services, label: Service times, component: service, list: true }
       - { name: body, label: Welcome note from the pastor, type: rich-text }

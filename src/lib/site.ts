@@ -92,16 +92,37 @@ export function whatsappLink(phone: string, text = ""): string {
   return `https://wa.me/${n}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 }
 
+/** "Opposite the market, Maara, Tharaka Nithi County" — whatever parts are filled in. */
+export function branchPlace(branch: Branch): string {
+  const d = branch.data;
+  return [d.address, d.subCounty, d.county && `${d.county} County`].filter(Boolean).join(", ");
+}
+
+/** True when the branch has a pin or street address, not just its area. */
+export function hasExactLocation(branch: Branch): boolean {
+  const d = branch.data;
+  return Boolean(d.mapLink || (d.latitude != null && d.longitude != null) || d.address);
+}
+
 export function mapLink(branch: Branch): string {
   const d = branch.data;
   if (d.mapLink) return d.mapLink;
   if (d.latitude != null && d.longitude != null) {
     return `https://www.google.com/maps/search/?api=1&query=${d.latitude},${d.longitude}`;
   }
-  if (d.address) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${d.address}, ${d.town}, Kenya`)}`;
-  }
-  return "";
+  // Until there's an address, search the area: "Kathingithu, Maara, Tharaka Nithi, Kenya".
+  const q = [d.address, d.town, d.subCounty, d.county, "Kenya"].filter(Boolean).join(", ");
+  return d.address || d.subCounty || d.county ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : "";
+}
+
+/** A branch without its own Paybill gives through the main church Paybill. */
+export function givingFor(branch: Branch) {
+  const own = Boolean(branch.data.paybill);
+  return {
+    own,
+    paybill: own ? branch.data.paybill : settings.centralPaybill,
+    accounts: own ? branch.data.accounts : settings.centralAccounts,
+  };
 }
 
 export function mapEmbed(branch: Branch): string {

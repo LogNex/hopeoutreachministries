@@ -1,10 +1,11 @@
 ---
-town: Town 6
-order: 6
-county: ""
+town: "Kilakir"
+order: 3
+subCounty: "Isinya"
+county: "Kajiado"
 address: ""
 mapLink: ""
-pastor: ""
+pastor: "Pastor Paul Kitobe Mwongela"
 pastorPhoto: ""
 photo: ""
 phone: ""

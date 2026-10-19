@@ -1,10 +1,11 @@
 ---
-town: Town 7
-order: 7
-county: ""
+town: "Noompala"
+order: 4
+subCounty: "Mashuuru"
+county: "Kajiado"
 address: ""
 mapLink: ""
-pastor: ""
+pastor: "Pastor Jonathan Letura"
 pastorPhoto: ""
 photo: ""
 phone: ""

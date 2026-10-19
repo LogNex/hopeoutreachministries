@@ -1,10 +1,11 @@
 ---
-town: Town 2
-order: 2
-county: ""
+town: "Noong'abolo"
+order: 5
+subCounty: "Mashuuru"
+county: "Kajiado"
 address: ""
 mapLink: ""
-pastor: ""
+pastor: "Pastor Daniel Tobiko"
 pastorPhoto: ""
 photo: ""
 phone: ""

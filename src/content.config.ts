@@ -31,6 +31,7 @@ const branches = defineCollection({
   schema: z.object({
     town: z.string(),
     order: num(),
+    subCounty: text(),
     county: text(),
     address: text(),
     mapLink: text(),

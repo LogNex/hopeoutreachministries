@@ -1,10 +1,11 @@
 ---
-town: Town 1
+town: "Kathingithu"
 order: 1
-county: ""
+subCounty: "Maara"
+county: "Tharaka Nithi"
 address: ""
 mapLink: ""
-pastor: ""
+pastor: "Pastor Adiel Mwirigi"
 pastorPhoto: ""
 photo: ""
 phone: ""

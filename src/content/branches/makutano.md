@@ -1,10 +1,11 @@
 ---
-town: Town 4
-order: 4
-county: ""
+town: "Makutano"
+order: 2
+subCounty: "Igambang'ombe"
+county: "Tharaka Nithi"
 address: ""
 mapLink: ""
-pastor: ""
+pastor: "Pastor Joseph Gitnnga M. Kabete"
 pastorPhoto: ""
 photo: ""
 phone: ""

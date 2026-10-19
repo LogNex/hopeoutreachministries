@@ -9,7 +9,10 @@ import Icon from "../../components/Icon.astro";
 import {
   branchIdFromRef,
   branchName,
+  branchPlace,
   getBranches,
+  givingFor,
+  hasExactLocation,
   isoDay,
   mapEmbed,
   mapLink,
@@ -39,6 +42,8 @@ const directions = mapLink(branch);
 const embed = mapEmbed(branch);
 const wa = whatsappLink(d.whatsapp, `Hello ${branchName(branch)}, `);
 const tel = telLink(d.phone);
+const giving = givingFor(branch);
+const exact = hasExactLocation(branch);
 ---
 
 <Base
@@ -46,9 +51,9 @@ const tel = telLink(d.phone);
   description={`Service times, directions and contacts for ${branchName(branch)}.`}
   image={d.photo || undefined}
 >
-  <PageHead eyebrow="Hope Outreach Ministries" title={d.town} intro={[d.address, d.county].filter(Boolean).join(", ") || undefined}>
+  <PageHead eyebrow="Hope Outreach Ministries" title={d.town} intro={branchPlace(branch) || undefined}>
     <div class="btn-row branch-actions">
-      {directions && <a class="btn btn--gold" href={directions} target="_blank" rel="noopener"><Icon name="pin" /> Directions</a>}
+      {directions && <a class="btn btn--gold" href={directions} target="_blank" rel="noopener"><Icon name="pin" /> {exact ? "Directions" : "Find on map"}</a>}
       {tel && <a class="btn btn--light" href={tel}><Icon name="phone" /> Call</a>}
       {wa && <a class="btn btn--light" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> WhatsApp</a>}
     </div>
@@ -127,18 +132,19 @@ const tel = telLink(d.phone);
         </div>
 
         <Paybill
-          title={`Give to ${d.town}`}
-          paybill={d.paybill}
-          accounts={d.accounts}
-          note={d.paybill ? `Your gift goes to the ${d.town} branch.` : undefined}
+          title={giving.own ? `Give to ${d.town}` : "Give"}
+          paybill={giving.paybill}
+          accounts={giving.accounts}
+          note={giving.own ? `Your gift goes to the ${d.town} branch.` : `${d.town} gives through the ${settings.siteName} Paybill.`}
         />
         {
-          settings.centralPaybill && (
+          giving.own && settings.centralPaybill && (
             <p class="card__meta">
               Giving to the whole church instead? <a href="/give/">See the main Paybill</a>.
             </p>
           )
         }
+        <p class="card__meta"><a href="/give/">How to pay with M-Pesa</a></p>
       </aside>
     </div>
   </section>

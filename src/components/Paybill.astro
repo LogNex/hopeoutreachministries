@@ -8,6 +8,8 @@ interface Props {
   note?: string;
 }
 const { title, paybill, accounts, note } = Astro.props;
+// Numbers are shown grouped for reading ("222 111") but copied as digits only, ready for M-Pesa.
+const digits = (value: string) => value.replace(/\s+/g, "");
 ---
 
 <div class="card paybill">
@@ -19,19 +21,21 @@ const { title, paybill, accounts, note } = Astro.props;
         <div class="paybill__row paybill__row--main">
           <span class="paybill__label">Paybill (Business no.)</span>
           <span class="paybill__value">{paybill}</span>
-          <button class="copy" type="button" data-copy={paybill} aria-label={`Copy Paybill number ${paybill}`}>
+          <button class="copy" type="button" data-copy={digits(paybill)} aria-label={`Copy Paybill number ${paybill}`}>
             <Icon name="copy" /> <span data-copy-text>Copy</span>
           </button>
         </div>
         {accounts.length > 0 && (
           <>
-            <p class="paybill__h">Account number — choose what your gift is for:</p>
+            <p class="paybill__h">
+              {accounts.length === 1 ? "Account number:" : "Account number — choose what your gift is for:"}
+            </p>
             <ul class="paybill__accounts">
               {accounts.map((a) => (
                 <li class="paybill__row">
                   <span class="paybill__label">{a.label}</span>
                   <span class="paybill__value">{a.account}</span>
-                  <button class="copy" type="button" data-copy={a.account} aria-label={`Copy account ${a.account}`}>
+                  <button class="copy" type="button" data-copy={digits(a.account)} aria-label={`Copy account number ${a.account}`}>
                     <Icon name="copy" /> <span data-copy-text>Copy</span>
                   </button>
                 </li>
