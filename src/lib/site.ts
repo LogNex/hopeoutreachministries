@@ -104,6 +104,12 @@ export function hasExactLocation(branch: Branch): boolean {
   return Boolean(d.mapLink || (d.latitude != null && d.longitude != null) || d.address);
 }
 
+/** A pin is shown, but nobody has said it is the church itself: say it is the nearest location. */
+export function pinIsApproximate(branch: Branch): boolean {
+  const d = branch.data;
+  return Boolean(d.mapLink || (d.latitude != null && d.longitude != null)) && !d.exactPin;
+}
+
 export function mapLink(branch: Branch): string {
   const d = branch.data;
   if (d.mapLink) return d.mapLink;

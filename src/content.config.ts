@@ -35,6 +35,8 @@ const branches = defineCollection({
     county: text(),
     address: text(),
     mapLink: text(),
+    // Tick in the editor once the pin is the church itself, not just the nearest known place.
+    exactPin: z.boolean().nullish().transform((v) => v === true),
     latitude: num(),
     longitude: num(),
     pastor: text(),

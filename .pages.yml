@@ -87,6 +87,7 @@ content:
       - { name: county, label: County, type: string }
       - { name: address, label: "Address or landmark (e.g. Opposite Total petrol station, Kenyatta Ave)", type: string }
       - { name: mapLink, label: "Google Maps link (Share → Copy link)", type: string }
+      - { name: exactPin, label: "The map link is the church itself (untick if it is only the nearest known place; the site then says 'nearest location')", type: boolean }
       - { name: latitude, label: "Latitude (for 'nearest branch', e.g. -1.2921)", type: number }
       - { name: longitude, label: "Longitude (e.g. 36.8219)", type: number }
       - { name: pastor, label: Branch pastor, type: string }

@@ -210,8 +210,11 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     text-decoration: none;
   }
 
+  /* Current page: a bar on the left edge in the phone menu. */
   .site-nav li a[aria-current="page"] {
     color: var(--blue-600);
+    padding-left: 0.9rem;
+    box-shadow: inset 4px 0 0 var(--blue-600);
   }
 
   .site-nav__give {
@@ -242,18 +245,45 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     }
 
     .site-nav li a {
+      position: relative;
       border: 0;
       padding: 0.5rem 0.6rem;
       border-radius: var(--radius-sm);
       font-size: 0.97rem;
     }
 
+    /* The bar sits under the text. Hover previews it faintly; the current page keeps it solid. */
+    .site-nav li a::after {
+      content: "";
+      position: absolute;
+      left: 0.6rem;
+      right: 0.6rem;
+      bottom: 0;
+      height: 3px;
+      border-radius: 3px;
+      background: var(--blue-600);
+      opacity: 0;
+      transform: scaleX(0.4);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
     .site-nav li a:hover {
-      background: var(--sky-100);
+      color: var(--blue-600);
+    }
+
+    .site-nav li a:hover::after {
+      opacity: 0.35;
+      transform: scaleX(1);
     }
 
     .site-nav li a[aria-current="page"] {
-      background: var(--sky-100);
+      padding-left: 0.6rem;
+      box-shadow: none;
+    }
+
+    .site-nav li a[aria-current="page"]::after {
+      opacity: 1;
+      transform: scaleX(1);
     }
 
     .site-nav__give {

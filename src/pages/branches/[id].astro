@@ -17,6 +17,7 @@ import {
   isoDay,
   mapEmbed,
   mapLink,
+  pinIsApproximate,
   settings,
   telLink,
   whatsappLink,
@@ -45,6 +46,7 @@ const wa = whatsappLink(d.whatsapp, `Hello ${branchName(branch)}, `);
 const tel = telLink(d.phone);
 const giving = givingFor(branch);
 const exact = hasExactLocation(branch);
+const nearest = pinIsApproximate(branch);
 ---
 
 <Base
@@ -58,6 +60,13 @@ const exact = hasExactLocation(branch);
       {tel && <a class="btn btn--light" href={tel}><Icon name="phone" /> Call</a>}
       {wa && <a class="btn btn--light" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> WhatsApp</a>}
     </div>
+    {
+      directions && nearest && (
+        <p class="pin-note">
+          <Icon name="pin" /> Directions go to the nearest known location to this church, not the exact spot.
+        </p>
+      )
+    }
   </PageHead>
 
   <section class="section">
@@ -110,14 +119,17 @@ const exact = hasExactLocation(branch);
       <aside class="branch-side">
         {
           embed && (
-            <div class="map">
-              <iframe
-                src={embed}
-                title={`Map showing ${branchName(branch)}`}
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-              />
-            </div>
+            <figure class="map-wrap">
+              <div class="map">
+                <iframe
+                  src={embed}
+                  title={`Map showing ${nearest ? "the nearest location to " : ""}${branchName(branch)}`}
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              {nearest && <figcaption>Nearest known location to the church</figcaption>}
+            </figure>
           )
         }
 
@@ -199,6 +211,35 @@ const exact = hasExactLocation(branch);
     .pastor {
       grid-template-columns: auto minmax(0, 1fr);
     }
+  }
+
+  .pin-note {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin: 1rem 0 0;
+    max-width: 36rem;
+    font-size: 0.9rem;
+    color: var(--sky-200);
+  }
+
+  .pin-note :global(svg) {
+    width: 1.1em;
+    height: 1.1em;
+    flex: none;
+    margin-top: 0.2em;
+    color: var(--gold-500);
+  }
+
+  .map-wrap {
+    margin: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .map-wrap figcaption {
+    font-size: 0.85rem;
+    color: var(--muted);
   }
 
   .map {
