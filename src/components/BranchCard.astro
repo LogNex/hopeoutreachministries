@@ -1,4 +1,5 @@
 ---
+import Avatar from "./Avatar.astro";
 import Icon from "./Icon.astro";
 import ServiceTimes from "./ServiceTimes.astro";
 import { branchPlace, type Branch } from "../lib/site";
@@ -29,7 +30,14 @@ const place = branchPlace(branch);
       </p>
     )
   }
-  {d.pastor && <p class="card__meta branch-card__pastor">{d.pastor}</p>}
+  {
+    d.pastor && (
+      <div class="branch-card__pastor">
+        <Avatar name={d.pastor} src={d.pastorPhoto} size={44} />
+        <span>{d.pastor}</span>
+      </div>
+    )
+  }
   <ServiceTimes branch={branch} compact />
   <span class="branch-card__more">Branch details <Icon name="arrow" /></span>
 </article>
@@ -66,9 +74,12 @@ const place = branchPlace(branch);
   }
 
   .branch-card__pastor {
-    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     font-weight: 600;
     color: var(--navy-800);
+    min-width: 0;
   }
 
   .branch-card__where :global(svg) {

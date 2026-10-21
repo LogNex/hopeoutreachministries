@@ -4,7 +4,9 @@ order: 5
 subCounty: "Mashuuru"
 county: "Kajiado"
 address: ""
-mapLink: ""
+mapLink: "https://maps.app.goo.gl/xEZuhpzkQUcz1UbN7"
+latitude: -2.12
+longitude: 37.39
 pastor: "Pastor Daniel Tobiko"
 pastorPhoto: ""
 photo: ""
@@ -13,5 +15,10 @@ whatsapp: ""
 email: ""
 paybill: ""
 accounts: []
-services: []
+services:
+  - day: Sunday
+    time: "09:30"
+    endTime: ""
+    name: Sunday Service
+    language: English & Kiswahili
 ---

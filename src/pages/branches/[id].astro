@@ -2,6 +2,7 @@
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
+import Avatar from "../../components/Avatar.astro";
 import ServiceTimes from "../../components/ServiceTimes.astro";
 import Paybill from "../../components/Paybill.astro";
 import EventCard from "../../components/EventCard.astro";
@@ -72,7 +73,7 @@ const exact = hasExactLocation(branch);
         {
           (d.pastor || hasWelcome) && (
             <div class="card pastor">
-              {d.pastorPhoto && <img src={d.pastorPhoto} alt={d.pastor} class="pastor__photo" width="96" height="96" loading="lazy" />}
+              {d.pastor && <Avatar name={d.pastor} src={d.pastorPhoto} size={96} />}
               <div>
                 {d.pastor && (
                   <>
@@ -198,13 +199,6 @@ const exact = hasExactLocation(branch);
     .pastor {
       grid-template-columns: auto minmax(0, 1fr);
     }
-  }
-
-  .pastor__photo {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    object-fit: cover;
   }
 
   .map {

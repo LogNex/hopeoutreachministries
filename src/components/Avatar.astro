@@ -1,0 +1,48 @@
+---
+// A round portrait. Without a photo it shows the person's initials, so a missing photo
+// doesn't leave a gap or a broken image.
+interface Props {
+  name: string;
+  src?: string;
+  size?: number;
+}
+const { name, src, size = 56 } = Astro.props;
+const initials = name
+  .replace(/^(pastor|rev\.?|reverend|bishop|apostle|dr\.?)\s+/i, "")
+  .split(/\s+/)
+  .filter(Boolean)
+  .map((w) => w[0])
+  .slice(0, 2)
+  .join("")
+  .toUpperCase();
+---
+
+{
+  src ? (
+    <img class="avatar" src={src} alt={name} width={size} height={size} loading="lazy" style={`--size:${size}px`} />
+  ) : (
+    <span class="avatar avatar--initials" aria-hidden="true" style={`--size:${size}px`}>
+      {initials}
+    </span>
+  )
+}
+
+<style>
+  .avatar {
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    object-fit: cover;
+    flex: none;
+    background: var(--sky-100);
+  }
+
+  .avatar--initials {
+    display: grid;
+    place-items: center;
+    color: var(--blue-700);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: calc(var(--size) * 0.36);
+  }
+</style>
