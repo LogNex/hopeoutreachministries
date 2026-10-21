@@ -21,7 +21,7 @@ const meta = [d.speaker, formatDate(d.date, { weekday: "long", month: "long" }),
 <Base title={d.title} description={d.summary || `${d.title} — ${meta}`}>
   <PageHead eyebrow={d.series || "Sermon"} title={d.title} intro={meta} />
   <section class="section">
-    <div class="wrap sermon">
+    <div class="wrap sermon" data-reveal="stagger">
       {d.video && <VideoEmbed url={d.video} title={d.title} />}
       {
         d.audio && (

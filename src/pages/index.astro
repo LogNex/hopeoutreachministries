@@ -20,7 +20,7 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
 
 <Base>
   <section class="hero">
-    <div class="wrap hero__inner">
+    <div class="wrap hero__inner" data-reveal="stagger">
       <span class="eyebrow">Karibu · Welcome</span>
       <h1>{settings.siteName}</h1>
       <p class="hero__tag">{settings.tagline}</p>
@@ -37,7 +37,7 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
   </section>
 
   <section class="welcome">
-    <div class="wrap welcome__grid">
+    <div class="wrap welcome__grid" data-reveal="stagger">
       <div>
         <h2>Join us this Sunday</h2>
         <p>
@@ -60,7 +60,7 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
 
   <section class="section section--tint" id="branches">
     <div class="wrap">
-      <div class="section__head">
+      <div class="section__head" data-reveal>
         <span class="eyebrow">Our branches</span>
         <h2>{branches.length} branches, one family</h2>
         <p>Choose your town for service times, directions and how to reach the pastor.</p>
@@ -73,13 +73,13 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
 
   <section class="section">
     <div class="wrap">
-      <div class="section__head">
+      <div class="section__head" data-reveal>
         <span class="eyebrow">Upcoming</span>
         <h2>Events</h2>
       </div>
       {
         events.length > 0 ? (
-          <div class="grid grid--2" data-upcoming>
+          <div class="grid grid--2" data-upcoming data-reveal="stagger">
             {events.map((e) => (
               <EventCard event={e} branchName={findBranch(branches, e.data.branch)?.data.town} />
             ))}
@@ -94,13 +94,13 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
 
   <section class="section section--tint">
     <div class="wrap">
-      <div class="section__head">
+      <div class="section__head" data-reveal>
         <span class="eyebrow">Messages</span>
         <h2>Latest sermons</h2>
       </div>
       {
         sermons.length > 0 ? (
-          <div class="grid grid--3">
+          <div class="grid grid--3" data-reveal="stagger">
             {sermons.map((s) => <SermonCard sermon={s} />)}
           </div>
         ) : (
@@ -115,7 +115,7 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
   </section>
 
   <section class="section">
-    <div class="wrap grid grid--2">
+    <div class="wrap grid grid--2" data-reveal="stagger">
       <div class="band band--give">
         <h2>Give</h2>
         <p>Support the work of the church — tithes, offerings and missions — by M-Pesa.</p>
@@ -145,7 +145,7 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
       radial-gradient(ellipse at 85% 110%, rgb(242 178 51 / 35%), transparent 55%),
       radial-gradient(circle at 10% 0%, rgb(47 116 216 / 55%), transparent 50%),
       linear-gradient(160deg, var(--navy-800), var(--navy-900));
-    padding: clamp(3rem, 10vw, 6rem) 0 clamp(2.5rem, 8vw, 4.5rem);
+    padding: calc(var(--top-h) + clamp(2rem, 7vw, 4rem)) 0 clamp(2.5rem, 8vw, 4.5rem);
     overflow: hidden;
   }
 

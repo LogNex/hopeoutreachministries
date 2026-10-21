@@ -11,17 +11,17 @@ const { title, intro, leaders } = page.data;
 <Base title={title} description={intro}>
   <PageHead eyebrow="Who we are" title={title} intro={intro} />
   <section class="section">
-    <div class="wrap prose"><Content /></div>
+    <div class="wrap prose" data-reveal><Content /></div>
   </section>
   {
     leaders.length > 0 && (
       <section class="section section--tint">
         <div class="wrap">
-          <div class="section__head">
+          <div class="section__head" data-reveal>
             <span class="eyebrow">Leadership</span>
             <h2>Our leaders</h2>
           </div>
-          <div class="grid grid--3">
+          <div class="grid grid--3" data-reveal="stagger">
             {leaders.map((l) => (
               <div class="card leader">
                 {l.photo ? (

@@ -3,6 +3,9 @@ import "@fontsource-variable/outfit";
 import "@fontsource-variable/montserrat";
 import "@fontsource-variable/montserrat/wght-italic.css";
 import "../styles/global.css";
+// The two fonts used above the fold are preloaded so the headline doesn't flash a fallback font.
+import outfitFont from "@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2?url";
+import montserratFont from "@fontsource-variable/montserrat/files/montserrat-latin-wght-normal.woff2?url";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import Icon from "../components/Icon.astro";
@@ -30,8 +33,26 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {canonical && <link rel="canonical" href={canonical} />}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- No tab icon until the official logo is released (set "Logo" in Church settings). -->
+    <link rel="icon" href={settings.logo || "data:,"} />
+    <link rel="preload" as="font" type="font/woff2" href={outfitFont} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={montserratFont} crossorigin />
     <meta name="theme-color" content="#0b2545" />
+    <!--
+      Animations hide content until they run, so they only switch on when scripts work and the
+      visitor hasn't asked for reduced motion. If the animation script hasn't started within
+      2.5 s (slow data, blocked script), everything is shown as normal.
+    -->
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        root.classList.add("motion-ok");
+        setTimeout(function () {
+          if (!window.__motionReady) root.classList.remove("motion-ok");
+        }, 2500);
+      })();
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={settings.siteName} />
     <meta property="og:title" content={fullTitle} />
@@ -54,6 +75,9 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
         </a>
       )
     }
+    <script>
+      import "../scripts/motion";
+    </script>
   </body>
 </html>
 

@@ -71,7 +71,7 @@ const nearest = pinIsApproximate(branch);
 
   <section class="section">
     <div class="wrap branch-layout">
-      <div class="branch-main">
+      <div class="branch-main" data-reveal="stagger">
         {d.photo && <img class="branch-photo" src={d.photo} alt={`The congregation at ${branchName(branch)}`} loading="lazy" />}
 
         <div class="card">
@@ -116,7 +116,7 @@ const nearest = pinIsApproximate(branch);
         </div>
       </div>
 
-      <aside class="branch-side">
+      <aside class="branch-side" data-reveal="stagger">
         {
           embed && (
             <figure class="map-wrap">

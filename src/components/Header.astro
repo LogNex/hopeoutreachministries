@@ -17,76 +17,179 @@ const path = Astro.url.pathname.replace(/\/?$/, "/");
 const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 ---
 
-{
-  settings.announcement && (
-    <div class="announce">
-      <div class="wrap">
-        {settings.announcementLink ? (
-          <a href={settings.announcementLink}>{settings.announcement}</a>
-        ) : (
-          <span>{settings.announcement}</span>
-        )}
+<!--
+  The header floats over the top of every page (each page opens with a dark band) and has no
+  background there. It slides away while you scroll down and comes back, with a solid
+  background, as soon as you scroll up. Back at the top it turns transparent again.
+-->
+<div class="site-top" data-site-top>
+  {
+    settings.announcement && (
+      <div class="announce">
+        <div class="wrap">
+          {settings.announcementLink ? (
+            <a href={settings.announcementLink}>{settings.announcement}</a>
+          ) : (
+            <span>{settings.announcement}</span>
+          )}
+        </div>
       </div>
+    )
+  }
+
+  <header class="site-header">
+    <div class="wrap site-header__bar">
+      <!-- Text only until the official logo is released: add it under "Logo" in Church settings. -->
+      <a class="brand" href="/" aria-label={`${settings.siteName} home`}>
+        {settings.logo && <img src={settings.logo} alt="" class="brand__logo" width="44" height="44" />}
+        <span class="brand__text">
+          <span class="brand__name">Hope Outreach</span>
+          <span class="brand__sub">Ministries</span>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__open"><Icon name="menu" /></span>
+        <span class="nav-toggle__close"><Icon name="close" /></span>
+        <span class="visually-hidden">Menu</span>
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          {
+            nav.map((item) => (
+              <li>
+                <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <a class="btn btn--gold btn--small site-nav__give" href="/give/">Give</a>
+      </nav>
     </div>
-  )
-}
-
-<header class="site-header">
-  <div class="wrap site-header__bar">
-    <a class="brand" href="/" aria-label={`${settings.siteName} home`}>
-      {
-        settings.logo ? (
-          <img src={settings.logo} alt="" class="brand__logo" width="44" height="44" />
-        ) : (
-          <span class="brand__mark" aria-hidden="true">
-            <svg viewBox="0 0 40 40" width="40" height="40">
-              <rect width="40" height="40" rx="10" fill="#1d5bbf" />
-              <path d="M8 28a12 12 0 0 1 24 0Z" fill="#f2b233" />
-              <path d="M20 8v14M14 13h12" stroke="#fff" stroke-width="3" stroke-linecap="round" />
-            </svg>
-          </span>
-        )
-      }
-      <span class="brand__text">
-        <span class="brand__name">Hope Outreach</span>
-        <span class="brand__sub">Ministries</span>
-      </span>
-    </a>
-
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
-      <span class="nav-toggle__open"><Icon name="menu" /></span>
-      <span class="nav-toggle__close"><Icon name="close" /></span>
-      <span class="visually-hidden">Menu</span>
-    </button>
-
-    <nav id="site-nav" class="site-nav" aria-label="Main">
-      <ul>
-        {
-          nav.map((item) => (
-            <li>
-              <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <a class="btn btn--gold btn--small site-nav__give" href="/give/">Give</a>
-    </nav>
-  </div>
-</header>
+  </header>
+</div>
 
 <script>
+  import { animate } from "motion/mini";
+
+  const top = document.querySelector<HTMLElement>("[data-site-top]");
   const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
   const nav = document.getElementById("site-nav");
-  toggle?.addEventListener("click", () => {
-    const open = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!open));
-    nav?.classList.toggle("is-open", !open);
-  });
+
+  if (top && toggle && nav) {
+    const root = document.documentElement;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const TOP_ZONE = 8; // within this many px of the top the header is transparent
+    const HIDE_AFTER = 90; // don't hide until the visitor is this far down
+    const DELTA = 6; // ignore scroll jitter smaller than this
+
+    let lastY = Math.max(0, window.scrollY);
+    const isOpen = () => toggle.getAttribute("aria-expanded") === "true";
+
+    function sync() {
+      const y = Math.max(0, window.scrollY); // iOS can report negative values while bouncing
+      if (y <= TOP_ZONE) {
+        top!.classList.remove("is-solid", "is-hidden");
+        lastY = y;
+        return;
+      }
+      if (isOpen()) {
+        top!.classList.add("is-solid");
+        top!.classList.remove("is-hidden");
+        lastY = y;
+        return;
+      }
+      const diff = y - lastY;
+      if (Math.abs(diff) < DELTA) return;
+      if (diff > 0) {
+        if (y > HIDE_AFTER) top!.classList.add("is-hidden"); // scrolling down
+      } else {
+        top!.classList.remove("is-hidden"); // scrolling up
+        top!.classList.add("is-solid");
+      }
+      lastY = y;
+    }
+
+    function setMenu(open: boolean) {
+      toggle!.setAttribute("aria-expanded", String(open));
+      nav!.classList.toggle("is-open", open);
+      top!.classList.toggle("menu-open", open);
+      if (open) {
+        top!.classList.remove("is-hidden");
+        if (!reduceMotion.matches) {
+          animate(
+            nav!,
+            { opacity: [0, 1], transform: ["translateY(-10px)", "translateY(0px)"] },
+            { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
+          ).then(() => {
+            nav!.style.removeProperty("opacity");
+            nav!.style.removeProperty("transform");
+          });
+        }
+      }
+      sync();
+    }
+
+    toggle.addEventListener("click", () => setMenu(!isOpen()));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && isOpen()) {
+        setMenu(false);
+        toggle.focus();
+      }
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 1024 && isOpen()) setMenu(false);
+    });
+
+    // Keyboard users tabbing to the header while it is hidden should see it.
+    top.addEventListener("focusin", () => top.classList.remove("is-hidden"));
+
+    // Scroll events already arrive at most once per frame, and sync() only toggles classes.
+    window.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("pageshow", sync);
+
+    // Pages start under the header; keep their top padding equal to its real height.
+    new ResizeObserver(() => root.style.setProperty("--top-h", `${top.offsetHeight}px`)).observe(top);
+
+    // A page restored part-way down (reload, back button) starts with the solid header.
+    if (lastY > TOP_ZONE) top.classList.add("is-solid");
+  }
 </script>
 
 <style>
+  .site-top {
+    /* Colours the bar uses while it is transparent over the dark band at the top. */
+    --nav-ink: var(--white);
+    --nav-hover: var(--white);
+    --nav-active: var(--white);
+    --nav-bar: var(--gold-500);
+    --nav-sub: var(--gold-500);
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .site-top.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  /* Solid: after scrolling up, and whenever the phone menu is open. */
+  .site-top.is-solid,
+  .site-top.menu-open {
+    --nav-ink: var(--navy-800);
+    --nav-hover: var(--blue-600);
+    --nav-active: var(--blue-600);
+    --nav-bar: var(--blue-600);
+    --nav-sub: var(--blue-600);
+  }
+
   .announce {
     background: var(--gold-500);
     color: var(--navy-900);
@@ -101,12 +204,21 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
   }
 
   .site-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition:
+      background-color 0.25s,
+      border-color 0.25s,
+      box-shadow 0.25s;
+  }
+
+  .site-top.is-solid .site-header,
+  .site-top.menu-open .site-header {
     background: rgb(255 255 255 / 96%);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--line);
+    border-bottom-color: var(--line);
+    box-shadow: 0 6px 18px rgb(11 37 69 / 8%);
   }
 
   .site-header__bar {
@@ -122,17 +234,14 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     align-items: center;
     gap: 0.6rem;
     text-decoration: none;
-    color: var(--navy-800);
+    color: var(--nav-ink);
+    transition: color 0.25s;
   }
 
   .brand__logo {
     width: 44px;
     height: 44px;
     object-fit: contain;
-  }
-
-  .brand__mark svg {
-    display: block;
   }
 
   .brand__text {
@@ -143,15 +252,17 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
   .brand__name {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
   }
 
   .brand__sub {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--blue-600);
+    color: var(--nav-sub);
+    transition: color 0.25s;
   }
 
   .nav-toggle {
@@ -161,9 +272,13 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     height: 48px;
     border: 0;
     border-radius: var(--radius-sm);
-    background: var(--sky-100);
-    color: var(--navy-800);
+    background: rgb(255 255 255 / 14%);
+    background: color-mix(in srgb, var(--nav-ink) 12%, transparent);
+    color: var(--nav-ink);
     cursor: pointer;
+    transition:
+      background-color 0.25s,
+      color 0.25s;
   }
 
   .nav-toggle__close,
@@ -179,6 +294,7 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     display: block;
   }
 
+  /* Phone: a white panel under the bar, so its colours are fixed rather than following the bar. */
   .site-nav {
     display: none;
     position: absolute;
@@ -250,6 +366,8 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
       padding: 0.5rem 0.6rem;
       border-radius: var(--radius-sm);
       font-size: 0.97rem;
+      color: var(--nav-ink);
+      transition: color 0.25s;
     }
 
     /* The bar sits under the text. Hover previews it faintly; the current page keeps it solid. */
@@ -261,22 +379,26 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
       bottom: 0;
       height: 3px;
       border-radius: 3px;
-      background: var(--blue-600);
+      background: var(--nav-bar);
       opacity: 0;
       transform: scaleX(0.4);
-      transition: opacity 0.15s, transform 0.15s;
+      transition:
+        opacity 0.15s,
+        transform 0.15s,
+        background-color 0.25s;
     }
 
     .site-nav li a:hover {
-      color: var(--blue-600);
+      color: var(--nav-hover);
     }
 
     .site-nav li a:hover::after {
-      opacity: 0.35;
+      opacity: 0.45;
       transform: scaleX(1);
     }
 
     .site-nav li a[aria-current="page"] {
+      color: var(--nav-active);
       padding-left: 0.6rem;
       box-shadow: none;
     }
@@ -288,6 +410,18 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
 
     .site-nav__give {
       width: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-top,
+    .site-header,
+    .brand,
+    .brand__sub,
+    .nav-toggle,
+    .site-nav li a,
+    .site-nav li a::after {
+      transition: none;
     }
   }
 </style>

@@ -30,7 +30,7 @@ const time = /^\d{1,2}:\d{2}$/.test(d.time) ? formatTime(d.time) : d.time;
     }
   </PageHead>
   <section class="section">
-    <div class="wrap event">
+    <div class="wrap event" data-reveal="stagger">
       {d.image && <img src={d.image} alt="" class="event__image" />}
       <div class="card event__facts">
         <p><Icon name="calendar" /> {when}{time && <> · {time}</>}</p>

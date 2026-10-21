@@ -5,13 +5,13 @@ import Icon from "./Icon.astro";
 ---
 
 <div class="finder" data-finder>
-  <div class="finder__bar">
+  <div class="finder__bar" data-reveal>
     <button class="btn btn--blue" type="button" data-locate>
       <Icon name="locate" /> Find my nearest branch
     </button>
     <p class="finder__status card__meta" data-status aria-live="polite"></p>
   </div>
-  <div class="grid grid--3" data-list>
+  <div class="grid grid--3" data-list data-reveal="stagger">
     <slot />
   </div>
 </div>

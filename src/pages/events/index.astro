@@ -27,7 +27,7 @@ const events = (await getCollection("events"))
           </div>
         )
       }
-      <div class="grid grid--2" data-upcoming>
+      <div class="grid grid--2" data-upcoming data-reveal="stagger">
         {
           events.map((e) => (
             <div data-event-wrap data-branch={branchIdFromRef(e.data.branch)}>

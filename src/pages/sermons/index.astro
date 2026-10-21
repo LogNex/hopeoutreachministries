@@ -16,7 +16,7 @@ const series = [...new Set(sermons.map((s) => s.data.series).filter(Boolean))].s
       {
         sermons.length > 0 ? (
           <>
-            <div class="filters">
+            <div class="filters" data-reveal>
               <label class="field">
                 <span>Search</span>
                 <input class="input" type="search" placeholder="Title, speaker or scripture" data-search />
@@ -31,7 +31,7 @@ const series = [...new Set(sermons.map((s) => s.data.series).filter(Boolean))].s
                 </label>
               )}
             </div>
-            <div class="grid grid--3" data-sermons>
+            <div class="grid grid--3" data-sermons data-reveal="stagger">
               {sermons.map((s) => (
                 <div
                   data-sermon

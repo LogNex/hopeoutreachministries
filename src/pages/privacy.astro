@@ -10,6 +10,6 @@ const { Content } = await render(page);
 <Base title={page.data.title} description={page.data.intro}>
   <PageHead title={page.data.title} intro={page.data.intro} />
   <section class="section">
-    <div class="wrap prose"><Content /></div>
+    <div class="wrap prose" data-reveal><Content /></div>
   </section>
 </Base>

@@ -23,7 +23,7 @@ const listTowns = (towns: string[]) =>
 
   <section class="section">
     <div class="wrap give-layout">
-      <div class="give-main">
+      <div class="give-main" data-reveal="stagger">
         <div>
           {ownPaybill.length > 0 && <h2>To the whole church</h2>}
           <Paybill
@@ -61,7 +61,7 @@ const listTowns = (towns: string[]) =>
         }
       </div>
 
-      <aside class="give-side">
+      <aside class="give-side" data-reveal="stagger">
         <div class="card steps">
           <h3>How to pay with M-Pesa</h3>
           <ol>
