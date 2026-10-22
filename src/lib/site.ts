@@ -6,6 +6,8 @@ export { settings };
 export type Branch = CollectionEntry<"branches">;
 export type ChurchEvent = CollectionEntry<"events">;
 export type Sermon = CollectionEntry<"sermons">;
+export type Ministry = CollectionEntry<"ministries">;
+export type Article = CollectionEntry<"articles">;
 
 export const TIME_ZONE = "Africa/Nairobi";
 export const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -37,6 +39,22 @@ export function branchIdFromRef(ref: string): string {
   if (!ref) return "";
   const base = ref.split(/[\\/]/).pop() ?? ref;
   return slugify(base.replace(/\.md$/i, ""));
+}
+
+export async function getMinistries(): Promise<Ministry[]> {
+  const all = await getCollection("ministries");
+  return all.sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99) || a.data.title.localeCompare(b.data.title));
+}
+
+/** Published articles only, newest first. */
+export async function getArticles(): Promise<Article[]> {
+  const all = await getCollection("articles", ({ data }) => !data.draft);
+  return all.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+}
+
+export function findMinistry(ministries: Ministry[], ref: string): Ministry | undefined {
+  const id = branchIdFromRef(ref); // a ministry reference looks just like a branch reference
+  return id ? ministries.find((m) => m.id === id) : undefined;
 }
 
 export function findBranch(branches: Branch[], ref: string): Branch | undefined {

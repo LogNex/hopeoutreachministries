@@ -1,0 +1,29 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import MinistryCard from "../../components/MinistryCard.astro";
+import { getMinistries, settings } from "../../lib/site";
+
+const ministries = await getMinistries();
+---
+
+<Base title="Ministries" description={`The ministries of ${settings.siteName}: Youth, Children and Mission Outreaches.`}>
+  <PageHead
+    eyebrow="Get involved"
+    title="Ministries"
+    intro="Find your place to belong and to serve. Choose a ministry to see how to join."
+  />
+  <section class="section">
+    <div class="wrap">
+      {
+        ministries.length > 0 ? (
+          <div class="grid grid--3" data-reveal="stagger">
+            {ministries.map((m) => <MinistryCard ministry={m} />)}
+          </div>
+        ) : (
+          <p class="empty">Our ministries will be listed here soon.</p>
+        )
+      }
+    </div>
+  </section>
+</Base>

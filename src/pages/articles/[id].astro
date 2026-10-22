@@ -1,0 +1,114 @@
+---
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import Icon from "../../components/Icon.astro";
+import { findBranch, findMinistry, formatDate, getArticles, getBranches, getMinistries, type Article } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((article) => ({ params: { id: article.id }, props: { article } }));
+}
+
+const { article } = Astro.props as { article: Article };
+const d = article.data;
+const { Content } = await render(article);
+const ministry = findMinistry(await getMinistries(), d.ministry);
+const branch = findBranch(await getBranches(), d.branch);
+const meta = [d.author, formatDate(d.date, { weekday: undefined, month: "long" }), branch?.data.town].filter(Boolean).join(" · ");
+const more = (await getArticles()).filter((a) => a.id !== article.id).slice(0, 3);
+const waBase = `https://wa.me/?text=${encodeURIComponent(d.title)}`;
+---
+
+<Base title={d.title} description={d.summary || `${d.title} — ${meta}`} image={d.image || undefined}>
+  <PageHead eyebrow={ministry?.data.title ?? "Article"} title={d.title} intro={meta || undefined} />
+
+  <section class="section">
+    <div class="wrap article" data-reveal="stagger">
+      {d.image && <img class="article__image" src={d.image} alt="" />}
+      {d.summary && <p class="lead">{d.summary}</p>}
+      <div class="prose"><Content /></div>
+
+      <div class="share">
+        <span class="share__label">Share this article</span>
+        <div class="btn-row">
+          <a class="btn btn--blue btn--small" href={waBase} target="_blank" rel="noopener" data-share data-title={d.title}>
+            <Icon name="whatsapp" /> WhatsApp
+          </a>
+          <button class="btn btn--outline btn--small" type="button" data-copy-link>
+            <Icon name="copy" /> <span data-copy-text>Copy link</span>
+          </button>
+        </div>
+      </div>
+
+      <p>
+        {ministry && <a href={`/ministries/${ministry.id}/`}>{ministry.data.title} ministry</a>}
+        {ministry && " · "}
+        <a href="/articles/">← All articles</a>
+      </p>
+    </div>
+  </section>
+
+  {
+    more.length > 0 && (
+      <section class="section section--tint">
+        <div class="wrap">
+          <div class="section__head" data-reveal>
+            <h2>More to read</h2>
+          </div>
+          <div class="grid grid--3" data-reveal="stagger">
+            {more.map((a) => <ArticleCard article={a} />)}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<script>
+  // The shared link includes the article's address as the visitor sees it.
+  document.querySelectorAll<HTMLAnchorElement>("[data-share]").forEach((a) => {
+    a.href = `https://wa.me/?text=${encodeURIComponent(`${a.dataset.title ?? ""} ${location.href}`)}`;
+  });
+
+  document.querySelector<HTMLButtonElement>("[data-copy-link]")?.addEventListener("click", async (e) => {
+    const label = (e.currentTarget as HTMLElement).querySelector<HTMLElement>("[data-copy-text]");
+    try {
+      await navigator.clipboard.writeText(location.href);
+      if (label) label.textContent = "Copied";
+    } catch {
+      if (label) label.textContent = "Copy failed";
+    }
+    setTimeout(() => {
+      if (label) label.textContent = "Copy link";
+    }, 2000);
+  });
+</script>
+
+<style>
+  .article {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 48rem;
+  }
+
+  .article__image {
+    width: 100%;
+    border-radius: var(--radius);
+  }
+
+  .share {
+    display: grid;
+    gap: 0.6rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .share__label {
+    font-weight: 700;
+    color: var(--navy-800);
+    font-size: 0.95rem;
+  }
+</style>

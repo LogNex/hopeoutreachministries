@@ -90,4 +90,35 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { branches, events, sermons, pages };
+// The three ministries: Youth, Children, Mission Outreaches (one file each).
+const ministries = defineCollection({
+  loader: glob({ base: "./src/content/ministries", pattern: "**/*.md" }),
+  schema: z.object({
+    title: z.string(),
+    order: num(),
+    summary: text(),
+    photo: text(),
+    leader: text(),
+    leaderPhoto: text(),
+    meets: text(), // e.g. "Sundays after the service"
+    phone: text(),
+    whatsapp: text(),
+  }),
+});
+
+const articles = defineCollection({
+  loader: glob({ base: "./src/content/articles", pattern: "**/*.md" }),
+  schema: z.object({
+    title: z.string(),
+    date: date(),
+    author: text(),
+    ministry: text(), // a ministry file, or empty for general articles
+    branch: text(),
+    image: text(),
+    summary: text(),
+    // Drafts are saved but not published until the editor turns this off.
+    draft: z.boolean().nullish().transform((v) => v === true),
+  }),
+});
+
+export const collections = { branches, events, sermons, pages, ministries, articles };

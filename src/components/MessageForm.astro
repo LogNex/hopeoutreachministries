@@ -5,12 +5,19 @@ import Icon from "./Icon.astro";
 import { getBranches, settings, telLink, whatsappLink } from "../lib/site";
 
 interface Props {
-  kind: "prayer" | "contact";
+  kind: "prayer" | "contact" | "ministry";
+  /** For kind="ministry": the ministry the message is for (Youth, Children, ...). */
+  ministry?: string;
 }
-const { kind } = Astro.props;
+const { kind, ministry } = Astro.props;
 const branches = await getBranches();
 const key = settings.formAccessKey;
-const subject = kind === "prayer" ? "New prayer request" : "New message from the website";
+const subject =
+  kind === "prayer"
+    ? "New prayer request"
+    : kind === "ministry"
+      ? `New message for the ${ministry} ministry`
+      : "New message from the website";
 const wa = whatsappLink(settings.whatsapp);
 ---
 
@@ -20,20 +27,21 @@ const wa = whatsappLink(settings.whatsapp);
       <input type="hidden" name="access_key" value={key} />
       <input type="hidden" name="subject" value={subject} />
       <input type="hidden" name="from_name" value={`${settings.siteName} website`} />
+      {kind === "ministry" && <input type="hidden" name="ministry" value={ministry} />}
       <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" />
 
       <div class="field">
         <label for={`${kind}-name`}>
           Your name {kind === "prayer" && <span class="hint">(optional)</span>}
         </label>
-        <input class="input" id={`${kind}-name`} name="name" autocomplete="name" required={kind === "contact"} />
+        <input class="input" id={`${kind}-name`} name="name" autocomplete="name" required={kind !== "prayer"} />
       </div>
 
       <div class="field">
         <label for={`${kind}-contact`}>
           Phone or email {kind === "prayer" && <span class="hint">(optional — if you'd like us to reach you)</span>}
         </label>
-        <input class="input" id={`${kind}-contact`} name="contact" autocomplete="tel" required={kind === "contact"} />
+        <input class="input" id={`${kind}-contact`} name="contact" autocomplete="tel" required={kind !== "prayer"} />
       </div>
 
       <div class="field">
@@ -47,7 +55,7 @@ const wa = whatsappLink(settings.whatsapp);
       </div>
 
       <div class="field">
-        <label for={`${kind}-message`}>{kind === "prayer" ? "Your prayer request" : "Your message"}</label>
+        <label for={`${kind}-message`}>{kind === "prayer" ? "Your prayer request" : kind === "ministry" ? "Your question or message" : "Your message"}</label>
         <textarea class="input" id={`${kind}-message`} name="message" required />
       </div>
 
@@ -75,14 +83,14 @@ const wa = whatsappLink(settings.whatsapp);
 
       <div>
         <button class="btn btn--blue" type="submit">
-          {kind === "prayer" ? "Send prayer request" : "Send message"}
+          {kind === "prayer" ? "Send prayer request" : kind === "ministry" ? `Message the ${ministry} ministry` : "Send message"}
         </button>
       </div>
       <p class="form-status" data-status role="status" hidden />
     </form>
   ) : (
     <div class="card">
-      <h3>{kind === "prayer" ? "Send us your prayer request" : "Get in touch"}</h3>
+      <h3>{kind === "prayer" ? "Send us your prayer request" : kind === "ministry" ? `Join ${ministry}` : "Get in touch"}</h3>
       <p class="card__meta">Reach the church office directly:</p>
       <div class="btn-row">
         {wa && (

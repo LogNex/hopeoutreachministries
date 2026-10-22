@@ -2,19 +2,26 @@
 import Icon from "./Icon.astro";
 import { settings } from "../lib/site";
 
+// Desktop shows these in the bar (Home is the logo there); the phone menu lists everything in order.
 const nav = [
-  { href: "/", label: "Home" },
+  { href: "/", label: "Home", phoneOnly: true },
   { href: "/about/", label: "About" },
   { href: "/branches/", label: "Branches" },
+  { href: "/ministries/", label: "Ministries" },
   { href: "/sermons/", label: "Sermons" },
+  { href: "/articles/", label: "Articles" },
   { href: "/events/", label: "Events" },
   { href: "/live/", label: "Live" },
+];
+// Desktop tucks these under "More" so the bar stays on one line; on a phone they are ordinary items.
+const more = [
   { href: "/new-here/", label: "New here?" },
   { href: "/contact/", label: "Contact" },
 ];
 
 const path = Astro.url.pathname.replace(/\/?$/, "/");
 const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+const moreActive = more.some((item) => isCurrent(item.href));
 ---
 
 <!--
@@ -58,13 +65,35 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
         <ul>
           {
             nav.map((item) => (
-              <li>
+              <li class={item.phoneOnly ? "nav-home" : undefined}>
                 <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
                   {item.label}
                 </a>
               </li>
             ))
           }
+          <li class="nav-more" data-more>
+            <button
+              class="nav-more__btn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="nav-more-list"
+              data-active={moreActive ? "true" : undefined}
+            >
+              More <Icon name="chevron" />
+            </button>
+            <ul id="nav-more-list" class="nav-more__list">
+              {
+                more.map((item) => (
+                  <li>
+                    <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
+                      {item.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </li>
         </ul>
         <a class="btn btn--gold btn--small site-nav__give" href="/give/">Give</a>
       </nav>
@@ -105,7 +134,10 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
       const diff = y - lastY;
       if (Math.abs(diff) < DELTA) return;
       if (diff > 0) {
-        if (y > HIDE_AFTER) top!.classList.add("is-hidden"); // scrolling down
+        if (y > HIDE_AFTER) {
+          top!.classList.add("is-hidden"); // scrolling down
+          setMore(false);
+        }
       } else {
         top!.classList.remove("is-hidden"); // scrolling up
         top!.classList.add("is-solid");
@@ -133,9 +165,29 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
       sync();
     }
 
+    // "More" dropdown (desktop only; on a phone its items are part of the flat list).
+    const more = document.querySelector<HTMLElement>("[data-more]");
+    const moreBtn = more?.querySelector<HTMLButtonElement>(".nav-more__btn");
+    const moreOpen = () => more?.classList.contains("is-open") ?? false;
+    function setMore(open: boolean) {
+      more?.classList.toggle("is-open", open);
+      moreBtn?.setAttribute("aria-expanded", String(open));
+    }
+    moreBtn?.addEventListener("click", () => setMore(!moreOpen()));
+    document.addEventListener("click", (e) => {
+      if (more && !more.contains(e.target as Node)) setMore(false);
+    });
+    more?.addEventListener("focusout", (e) => {
+      if (!more.contains(e.relatedTarget as Node | null)) setMore(false);
+    });
+
     toggle.addEventListener("click", () => setMenu(!isOpen()));
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && isOpen()) {
+      if (e.key !== "Escape") return;
+      if (moreOpen()) {
+        setMore(false);
+        moreBtn?.focus();
+      } else if (isOpen()) {
         setMenu(false);
         toggle.focus();
       }
@@ -333,6 +385,18 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     box-shadow: inset 4px 0 0 var(--blue-600);
   }
 
+  /* "More" is just a flat part of the list on a phone. */
+  .nav-more__btn {
+    display: none;
+  }
+
+  /* (Selectors include .site-nav so they beat the general ".site-nav ul" rules.) */
+  .site-nav .nav-more__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
   .site-nav__give {
     width: 100%;
   }
@@ -411,6 +475,120 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     .site-nav__give {
       width: auto;
     }
+
+    /* Home is the logo on desktop. */
+    .nav-home {
+      display: none;
+    }
+
+    /* "More": a button styled like the links, opening a small white panel. */
+    .nav-more {
+      position: relative;
+    }
+
+    .nav-more__btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 0.6rem;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: none;
+      font: inherit;
+      font-size: 0.97rem;
+      font-weight: 600;
+      color: var(--nav-ink);
+      cursor: pointer;
+      transition: color 0.25s;
+    }
+
+    .nav-more__btn :global(svg) {
+      width: 1em;
+      height: 1em;
+      transition: transform 0.2s;
+    }
+
+    .nav-more__btn[aria-expanded="true"] :global(svg) {
+      transform: rotate(180deg);
+    }
+
+    .nav-more__btn::after {
+      content: "";
+      position: absolute;
+      left: 0.6rem;
+      right: 0.6rem;
+      bottom: 0;
+      height: 3px;
+      border-radius: 3px;
+      background: var(--nav-bar);
+      opacity: 0;
+      transform: scaleX(0.4);
+      transition:
+        opacity 0.15s,
+        transform 0.15s,
+        background-color 0.25s;
+    }
+
+    .nav-more__btn:hover,
+    .nav-more__btn[aria-expanded="true"] {
+      color: var(--nav-hover);
+    }
+
+    .nav-more__btn:hover::after,
+    .nav-more__btn[aria-expanded="true"]::after {
+      opacity: 0.45;
+      transform: scaleX(1);
+    }
+
+    .nav-more__btn[data-active="true"] {
+      color: var(--nav-active);
+    }
+
+    .nav-more__btn[data-active="true"]::after {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+
+    .site-nav .nav-more__list {
+      display: none;
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      right: 0;
+      min-width: 12rem;
+      padding: 0.4rem;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .site-nav .nav-more.is-open .nav-more__list {
+      display: block;
+    }
+
+    /* Inside the panel the background is always white, whatever state the bar is in. */
+    .site-nav .nav-more__list li a {
+      display: block;
+      padding: 0.6rem 0.8rem;
+      color: var(--navy-800);
+      white-space: nowrap;
+    }
+
+    .site-nav .nav-more__list li a::after {
+      display: none;
+    }
+
+    .site-nav .nav-more__list li a:hover {
+      color: var(--blue-600);
+      background: var(--sky-100);
+    }
+
+    .site-nav .nav-more__list li a[aria-current="page"] {
+      color: var(--blue-600);
+      padding-left: 0.8rem;
+      box-shadow: inset 3px 0 0 var(--blue-600);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -419,6 +597,9 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     .brand,
     .brand__sub,
     .nav-toggle,
+    .nav-more__btn,
+    .nav-more__btn::after,
+    .nav-more__btn :global(svg),
     .site-nav li a,
     .site-nav li a::after {
       transition: none;

@@ -1,0 +1,163 @@
+---
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import Avatar from "../../components/Avatar.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import MessageForm from "../../components/MessageForm.astro";
+import Icon from "../../components/Icon.astro";
+import { branchIdFromRef, getArticles, getMinistries, telLink, whatsappLink, type Ministry } from "../../lib/site";
+
+export async function getStaticPaths() {
+  const ministries = await getMinistries();
+  return ministries.map((ministry) => ({ params: { id: ministry.id }, props: { ministry } }));
+}
+
+const { ministry } = Astro.props as { ministry: Ministry };
+const d = ministry.data;
+const { Content } = await render(ministry);
+const hasBody = Boolean(ministry.body?.trim());
+const articles = (await getArticles()).filter((a) => branchIdFromRef(a.data.ministry) === ministry.id).slice(0, 3);
+const tel = telLink(d.phone);
+const wa = whatsappLink(d.whatsapp, `Hello, I'd like to know more about the ${d.title} ministry. `);
+const hasDetails = Boolean(d.meets || d.leader || d.phone || d.whatsapp);
+---
+
+<Base title={`${d.title} ministry`} description={d.summary || `The ${d.title} ministry of Hope Outreach Ministries.`} image={d.photo || undefined}>
+  <PageHead eyebrow="Ministries" title={d.title} intro={d.summary || undefined} />
+
+  <section class="section">
+    <div class="wrap ministry" data-reveal="stagger">
+      <div class="ministry__main">
+        {d.photo && <img class="ministry__photo" src={d.photo} alt="" loading="lazy" />}
+        {
+          hasBody && (
+            <div class="prose">
+              <Content />
+            </div>
+          )
+        }
+        <div>
+          <h2>Join {d.title}</h2>
+          <p class="card__meta">Send a message and someone from the ministry will get back to you.</p>
+          <MessageForm kind="ministry" ministry={d.title} />
+        </div>
+      </div>
+
+      {
+        hasDetails && (
+          <aside class="card ministry__side">
+            <h3>At a glance</h3>
+            <ul class="facts">
+              {d.meets && <li><Icon name="clock" /><span>{d.meets}</span></li>}
+              {
+                d.leader && (
+                  <li class="facts__leader">
+                    <Avatar name={d.leader} src={d.leaderPhoto} size={48} />
+                    <span>
+                      <span class="card__meta">Led by</span>
+                      <br />
+                      {d.leader}
+                    </span>
+                  </li>
+                )
+              }
+              {d.phone && <li><Icon name="phone" /><a href={tel}>{d.phone}</a></li>}
+              {d.whatsapp && <li><Icon name="whatsapp" /><a href={wa} target="_blank" rel="noopener">WhatsApp {d.whatsapp}</a></li>}
+            </ul>
+          </aside>
+        )
+      }
+    </div>
+  </section>
+
+  {
+    articles.length > 0 && (
+      <section class="section section--tint">
+        <div class="wrap">
+          <div class="section__head" data-reveal>
+            <span class="eyebrow">{d.title}</span>
+            <h2>{ministry.id === "mission-outreaches" ? "Outreach stories" : "Latest articles"}</h2>
+          </div>
+          <div class="grid grid--3" data-reveal="stagger">
+            {articles.map((a) => <ArticleCard article={a} />)}
+          </div>
+          <p class="more"><a href="/articles/">All articles <Icon name="arrow" /></a></p>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .ministry {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 960px) {
+    .ministry {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .ministry__main {
+    display: grid;
+    gap: 1.75rem;
+    min-width: 0;
+  }
+
+  .ministry__photo {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+
+  .ministry__side {
+    min-width: 0;
+  }
+
+  .facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .facts li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    overflow-wrap: anywhere;
+  }
+
+  .facts :global(svg:not(.avatar)) {
+    width: 1.15em;
+    height: 1.15em;
+    color: var(--blue-600);
+    flex: none;
+  }
+
+  .facts__leader {
+    gap: 0.8rem;
+  }
+
+  .more {
+    margin: 1.25rem 0 0;
+  }
+
+  .more a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+  }
+
+  .more :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+</style>

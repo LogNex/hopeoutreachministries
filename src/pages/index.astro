@@ -5,9 +5,10 @@ import BranchCard from "../components/BranchCard.astro";
 import BranchFinder from "../components/BranchFinder.astro";
 import EventCard from "../components/EventCard.astro";
 import SermonCard from "../components/SermonCard.astro";
+import ArticleCard from "../components/ArticleCard.astro";
 import NextService from "../components/NextService.astro";
 import Icon from "../components/Icon.astro";
-import { findBranch, getBranches, isoDay, settings } from "../lib/site";
+import { findBranch, findMinistry, getArticles, getBranches, getMinistries, isoDay, settings } from "../lib/site";
 
 const branches = await getBranches();
 const today = isoDay(new Date());
@@ -16,6 +17,8 @@ const events = (await getCollection("events"))
   .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf())
   .slice(0, 6);
 const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
+const articles = (await getArticles()).slice(0, 3);
+const ministries = await getMinistries();
 ---
 
 <Base>
@@ -113,6 +116,25 @@ const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valu
       <p class="more"><a href="/sermons/">All sermons <Icon name="arrow" /></a></p>
     </div>
   </section>
+
+  {
+    articles.length > 0 && (
+      <section class="section">
+        <div class="wrap">
+          <div class="section__head" data-reveal>
+            <span class="eyebrow">Read</span>
+            <h2>Latest articles</h2>
+          </div>
+          <div class="grid grid--3" data-reveal="stagger">
+            {articles.map((a) => (
+              <ArticleCard article={a} ministryName={findMinistry(ministries, a.data.ministry)?.data.title} />
+            ))}
+          </div>
+          <p class="more"><a href="/articles/">All articles <Icon name="arrow" /></a></p>
+        </div>
+      </section>
+    )
+  }
 
   <section class="section">
     <div class="wrap grid grid--2" data-reveal="stagger">

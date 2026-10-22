@@ -105,6 +105,7 @@ content:
     label: Events
     type: collection
     path: src/content/events
+    exclude: [".gitkeep"]
     format: yaml-frontmatter
     filename: "{year}-{month}-{day}-{fields.title}.md"
     view:
@@ -130,6 +131,7 @@ content:
     label: Sermons
     type: collection
     path: src/content/sermons
+    exclude: [".gitkeep"]
     format: yaml-frontmatter
     filename: "{year}-{month}-{day}-{fields.title}.md"
     view:
@@ -150,6 +152,57 @@ content:
       - { name: audio, label: Audio file (optional), type: file }
       - { name: summary, label: One-line summary, type: string }
       - { name: body, label: Sermon notes (optional), type: rich-text }
+
+  - name: ministries
+    label: Ministries
+    type: collection
+    path: src/content/ministries
+    format: yaml-frontmatter
+    # Exactly three ministries: Youth, Children, Mission Outreaches. Edit them; don't add or remove.
+    operations: { create: false, rename: false, delete: false }
+    view:
+      fields: [title, leader, meets]
+      primary: title
+      sort: [order, title]
+    fields:
+      - { name: title, label: Ministry name, type: string, required: true }
+      - { name: order, label: "Order on the site (1 = first)", type: number }
+      - { name: summary, label: One-line summary, type: string }
+      - { name: photo, label: Photo, type: image }
+      - { name: leader, label: Ministry leader, type: string }
+      - { name: leaderPhoto, label: Leader's photo, type: image }
+      - { name: meets, label: "When it meets (e.g. Sundays after the service)", type: string }
+      - { name: phone, label: Phone, type: string }
+      - { name: whatsapp, label: WhatsApp, type: string }
+      - { name: body, label: "About this ministry (what it does, who it is for, how to join)", type: rich-text }
+
+  - name: articles
+    label: Articles
+    type: collection
+    path: src/content/articles
+    format: yaml-frontmatter
+    filename: "{year}-{month}-{day}-{fields.title}.md"
+    exclude: [".gitkeep"]
+    view:
+      fields: [title, date, author, draft]
+      primary: title
+      sort: [date]
+    fields:
+      - { name: title, label: Title, type: string, required: true }
+      - { name: date, label: Date, type: date, required: true }
+      - { name: author, label: Author, type: string }
+      - name: ministry
+        label: "Ministry (leave empty for a general article)"
+        type: reference
+        options: { collection: ministries, search: title, label: "{fields.title}" }
+      - name: branch
+        label: Branch (optional)
+        type: reference
+        options: { collection: branches, search: town, label: "{fields.town}" }
+      - { name: image, label: "Cover image (keep it under 200 KB)", type: image }
+      - { name: summary, label: One-line summary (shown in lists), type: string }
+      - { name: draft, label: "Draft (tick to save without publishing)", type: boolean }
+      - { name: body, label: Article, type: rich-text }
 
   - name: pages
     label: Pages

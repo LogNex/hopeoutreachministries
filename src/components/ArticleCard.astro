@@ -1,0 +1,77 @@
+---
+import Icon from "./Icon.astro";
+import { formatDate, type Article } from "../lib/site";
+
+interface Props {
+  article: Article;
+  /** Name of the ministry the article belongs to, if any. */
+  ministryName?: string;
+}
+const { article, ministryName } = Astro.props;
+const d = article.data;
+---
+
+<article class="card card--link article-card">
+  {
+    d.image ? (
+      <img class="article-card__image" src={d.image} alt="" loading="lazy" />
+    ) : (
+      <div class="article-card__image article-card__image--empty" aria-hidden="true">
+        <Icon name="heart" />
+      </div>
+    )
+  }
+  <div>
+    {ministryName && <span class="eyebrow">{ministryName}</span>}
+    <h3><a href={`/articles/${article.id}/`}>{d.title}</a></h3>
+    <p class="card__meta">{[d.author, formatDate(d.date)].filter(Boolean).join(" · ")}</p>
+    {d.summary && <p class="article-card__summary">{d.summary}</p>}
+  </div>
+</article>
+
+<style>
+  .article-card {
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+  }
+
+  .article-card__image {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .article-card__image--empty {
+    display: grid;
+    place-items: center;
+    color: var(--white);
+    background: radial-gradient(circle at 30% 20%, var(--blue-600), var(--navy-900));
+  }
+
+  .article-card__image--empty :global(svg) {
+    width: 44px;
+    height: 44px;
+  }
+
+  .article-card h3 a {
+    color: var(--navy-800);
+    text-decoration: none;
+  }
+
+  .article-card h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+  }
+
+  .article-card .card__meta {
+    margin-bottom: 0.4rem;
+  }
+
+  .article-card__summary {
+    margin: 0;
+  }
+</style>

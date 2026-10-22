@@ -22,6 +22,8 @@ The church website: one church, six branches across Kenya.
 | Live | Next livestream countdown (Kenya time) and the church's Facebook page, loaded only on tap to save data |
 | Sermons | Facebook or YouTube video (loaded on tap), optional audio, notes, search and series filter |
 | Events | Upcoming events with a branch filter; past events disappear on their own |
+| Ministries | Exactly three: Youth, Children, Mission Outreaches. Each has its own page with who leads it, when it meets, and a "Join" form that emails the church office (the ministry's name is in the subject) |
+| Articles | Teaching, news and stories, newest first, with search and a ministry filter. Each article can be shared on WhatsApp. Drafts are saved but not published |
 | New here?, About, Prayer request, Contact, Privacy notice | Editable text pages and the two forms |
 
 ## 1. Put the site online (Cloudflare) — once, about 10 minutes
@@ -53,7 +55,8 @@ The editor then signs in at <https://app.pagescms.org> and sees:
 
 - **Church settings:** name, tagline, logo, announcement bar, office contacts, WhatsApp, Facebook link, main Paybill and accounts, livestream times, form key.
 - **Branches:** one entry per town (service times, Paybill, pastor, contacts, map).
-- **Events** and **Sermons:** add a new one with **Add entry**.
+- **Events**, **Sermons** and **Articles:** add a new one with **Add entry**. For an article, tick **Draft** to save it without publishing, and keep cover images under 200 KB.
+- **Ministries:** edit Youth, Children and Mission Outreaches (leader, when they meet, phone, photo, description). They can't be added or removed. Tag an article with a ministry and it appears on that ministry's page; Mission Outreaches shows them as "Outreach stories".
 - **Pages:** About us, New here?, Privacy notice.
 
 Changes go live about a minute after **Save**.

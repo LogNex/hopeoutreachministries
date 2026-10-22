@@ -1,0 +1,89 @@
+---
+import Icon from "./Icon.astro";
+import type { Ministry } from "../lib/site";
+
+interface Props {
+  ministry: Ministry;
+}
+const { ministry } = Astro.props;
+const d = ministry.data;
+---
+
+<article class="card card--link ministry-card">
+  {
+    d.photo ? (
+      <img class="ministry-card__photo" src={d.photo} alt="" loading="lazy" />
+    ) : (
+      <div class="ministry-card__photo ministry-card__photo--empty" aria-hidden="true">
+        <Icon name="heart" />
+      </div>
+    )
+  }
+  <h3><a href={`/ministries/${ministry.id}/`}>{d.title}</a></h3>
+  {d.summary && <p class="ministry-card__summary">{d.summary}</p>}
+  {d.meets && <p class="card__meta">{d.meets}</p>}
+  <span class="ministry-card__more">Learn more and join <Icon name="arrow" /></span>
+</article>
+
+<style>
+  .ministry-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .ministry-card__photo {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .ministry-card__photo--empty {
+    display: grid;
+    place-items: center;
+    color: var(--white);
+    background: radial-gradient(circle at 30% 20%, var(--blue-600), var(--navy-900));
+  }
+
+  .ministry-card__photo--empty :global(svg) {
+    width: 48px;
+    height: 48px;
+  }
+
+  .ministry-card h3 {
+    margin: 0;
+  }
+
+  .ministry-card h3 a {
+    color: var(--navy-800);
+    text-decoration: none;
+  }
+
+  .ministry-card h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+  }
+
+  .ministry-card__summary,
+  .ministry-card .card__meta {
+    margin: 0;
+  }
+
+  .ministry-card__more {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+    color: var(--blue-600);
+    font-size: 0.95rem;
+  }
+
+  .ministry-card__more :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+</style>

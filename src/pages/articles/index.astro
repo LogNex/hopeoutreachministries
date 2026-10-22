@@ -1,0 +1,97 @@
+---
+import Base from "../../layouts/Base.astro";
+import PageHead from "../../components/PageHead.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import { branchIdFromRef, findMinistry, getArticles, getMinistries, settings } from "../../lib/site";
+
+const articles = await getArticles();
+const ministries = await getMinistries();
+const usedMinistries = ministries.filter((m) => articles.some((a) => branchIdFromRef(a.data.ministry) === m.id));
+---
+
+<Base title="Articles" description={`Articles, teaching and stories from ${settings.siteName}.`}>
+  <PageHead eyebrow="Read" title="Articles" intro="Teaching, news and stories from across our branches and ministries." />
+  <section class="section">
+    <div class="wrap">
+      {
+        articles.length > 0 ? (
+          <>
+            <div class="filters" data-reveal>
+              <label class="field">
+                <span>Search</span>
+                <input class="input" type="search" placeholder="Title, author or topic" data-search />
+              </label>
+              {usedMinistries.length > 0 && (
+                <label class="field">
+                  <span>Ministry</span>
+                  <select class="input" data-ministry>
+                    <option value="">All articles</option>
+                    {usedMinistries.map((m) => <option value={m.id}>{m.data.title}</option>)}
+                  </select>
+                </label>
+              )}
+            </div>
+            <div class="grid grid--3" data-reveal="stagger">
+              {articles.map((a) => (
+                <div
+                  data-article
+                  data-ministry={branchIdFromRef(a.data.ministry)}
+                  data-text={[a.data.title, a.data.author, a.data.summary].join(" ").toLowerCase()}
+                >
+                  <ArticleCard article={a} ministryName={findMinistry(ministries, a.data.ministry)?.data.title} />
+                </div>
+              ))}
+            </div>
+            <p class="empty" data-none hidden>No articles match your search.</p>
+          </>
+        ) : (
+          <p class="empty">Articles will appear here soon.</p>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<script>
+  const search = document.querySelector<HTMLInputElement>("[data-search]");
+  const ministry = document.querySelector<HTMLSelectElement>("select[data-ministry]");
+  const items = document.querySelectorAll<HTMLElement>("[data-article]");
+  const none = document.querySelector<HTMLElement>("[data-none]");
+  const apply = () => {
+    const q = (search?.value ?? "").trim().toLowerCase();
+    const m = ministry?.value ?? "";
+    let shown = 0;
+    items.forEach((el) => {
+      const ok = (!q || (el.dataset.text ?? "").includes(q)) && (!m || el.dataset.ministry === m);
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    if (none) none.hidden = shown > 0;
+  };
+  search?.addEventListener("input", apply);
+  ministry?.addEventListener("change", apply);
+</script>
+
+<style>
+  .filters {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .filters {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      max-width: 44rem;
+    }
+  }
+
+  .filters .field span {
+    font-weight: 700;
+    color: var(--navy-800);
+  }
+
+  [data-article][hidden] {
+    display: none;
+  }
+</style>
