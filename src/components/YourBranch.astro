@@ -118,8 +118,21 @@ const KEY = "hom:my-branch";
   if (greet && new Date(Date.now() + EAT).getUTCDay() === 0) greet.textContent = "Jumapili njema · Happy Sunday";
 
   render();
-  setInterval(render, 60000);
+  // This script runs again each time the home page is opened without a reload: replace the
+  // previous visit's timer and listener instead of adding more.
+  clearInterval(window.__ybTimer);
+  window.__ybTimer = setInterval(render, 60000);
+  document.removeEventListener("mybranchchange", window.__ybRender);
+  window.__ybRender = render;
   document.addEventListener("mybranchchange", render);
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      clearInterval(window.__ybTimer);
+      document.removeEventListener("mybranchchange", window.__ybRender);
+    },
+    { once: true },
+  );
 </script>
 
 <style>

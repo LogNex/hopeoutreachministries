@@ -9,7 +9,12 @@
 // set by a script in the page head (Base.astro), and only when the visitor hasn't asked for
 // reduced motion. If this script never starts, the head script removes the class after 2.5 s
 // and everything simply shows.
+//
+// Pages change without a reload (ClientRouter). The swap copies <html>'s attributes from the
+// new page, which drops "motion-ok", so it is put back straight after the swap (before paint),
+// and the new page's elements are observed in onPage.
 import { animate } from "motion/mini";
+import { onPage } from "./page";
 
 declare global {
   interface Window {
@@ -18,8 +23,13 @@ declare global {
 }
 
 const root = document.documentElement;
+let enabled = root.classList.contains("motion-ok");
 
-function start() {
+document.addEventListener("astro:after-swap", () => {
+  root.classList.toggle("motion-ok", enabled);
+});
+
+function start(signal: AbortSignal) {
   if (!root.classList.contains("motion-ok")) return; // reduced motion, or the failsafe already ran
   window.__motionReady = true;
 
@@ -55,6 +65,7 @@ function start() {
     },
     { rootMargin: "0px 0px -8% 0px" },
   );
+  signal.addEventListener("abort", () => observer.disconnect());
 
   document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((host) => {
     if (host.dataset.reveal === "stagger") {
@@ -65,8 +76,11 @@ function start() {
   });
 }
 
-try {
-  start();
-} catch {
-  root.classList.remove("motion-ok"); // never leave content hidden
-}
+onPage((signal) => {
+  try {
+    start(signal);
+  } catch {
+    enabled = false;
+    root.classList.remove("motion-ok"); // never leave content hidden
+  }
+});

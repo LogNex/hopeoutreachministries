@@ -77,6 +77,7 @@ const sermons = defineCollection({
     branch: text(),
     video: text(), // Facebook or YouTube link
     audio: text(),
+    image: text(), // artwork; a YouTube video's own picture is used when empty
     summary: text(),
   }),
 });

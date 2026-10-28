@@ -17,19 +17,22 @@ const { id, town } = Astro.props;
 
 <script>
   import { EVENT, getMyBranch, setMyBranch } from "../scripts/my-branch";
+  import { onPage } from "../scripts/page";
 
-  document.querySelectorAll<HTMLButtonElement>("[data-my-branch]").forEach((button) => {
-    const id = button.dataset.myBranch!;
-    const sync = () => {
-      const mine = getMyBranch() === id;
-      button.setAttribute("aria-pressed", String(mine));
-      button.querySelector<HTMLElement>("[data-label-off]")!.hidden = mine;
-      button.querySelector<HTMLElement>("[data-label-on]")!.hidden = !mine;
-    };
-    button.addEventListener("click", () => setMyBranch(getMyBranch() === id ? "" : id));
-    document.addEventListener(EVENT, sync);
-    sync();
-    button.hidden = false;
+  onPage((signal) => {
+    document.querySelectorAll<HTMLButtonElement>("[data-my-branch]").forEach((button) => {
+      const id = button.dataset.myBranch!;
+      const sync = () => {
+        const mine = getMyBranch() === id;
+        button.setAttribute("aria-pressed", String(mine));
+        button.querySelector<HTMLElement>("[data-label-off]")!.hidden = mine;
+        button.querySelector<HTMLElement>("[data-label-on]")!.hidden = !mine;
+      };
+      button.addEventListener("click", () => setMyBranch(getMyBranch() === id ? "" : id));
+      document.addEventListener(EVENT, sync, { signal });
+      sync();
+      button.hidden = false;
+    });
   });
 </script>
 

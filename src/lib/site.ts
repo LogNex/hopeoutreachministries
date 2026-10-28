@@ -168,6 +168,25 @@ export function videoEmbed(url: string): string {
   return "";
 }
 
+/** A sermon's picture: its artwork, else its YouTube video's (320×180, ~10 KB); "" for Facebook. */
+export function sermonImage(sermon: Sermon): string {
+  if (sermon.data.image) return sermon.data.image;
+  const yt = /(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/.exec(sermon.data.video);
+  return yt ? `https://i.ytimg.com/vi/${yt[1]}/mqdefault.jpg` : "";
+}
+
+/** "John 3:16-21" → a page where it can be read (King James, like the verse on the home page). */
+export function bibleLink(passage: string): string {
+  return `https://www.biblegateway.com/passage/?search=${encodeURIComponent(passage)}&version=KJV`;
+}
+
+export function sermonMeta(sermon: Sermon, branches: Branch[]): string {
+  const d = sermon.data;
+  return [d.speaker, formatDate(d.date, { weekday: undefined }), findBranch(branches, d.branch)?.data.town]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function videoSource(url: string): string {
   if (/youtube\.com|youtu\.be/.test(url)) return "YouTube";
   if (/facebook\.com|fb\.watch/.test(url)) return "Facebook";

@@ -1,0 +1,37 @@
+---
+// Plays a sermon in the docked player (AudioDock.astro). Without JavaScript it is a plain link
+// to the audio file. data-astro-reload keeps the page router from treating it as a page.
+import Icon from "./Icon.astro";
+
+interface Props {
+  src: string;
+  title: string;
+  meta?: string;
+  href: string;
+  variant?: "gold" | "small";
+}
+const { src, title, meta = "", href, variant = "gold" } = Astro.props;
+---
+
+<a
+  class:list={["btn", "listen", variant === "small" ? "btn--outline btn--small" : "btn--gold"]}
+  href={src}
+  data-listen
+  data-astro-reload
+  data-src={src}
+  data-title={title}
+  data-meta={meta}
+  data-href={href}
+  aria-pressed="false"
+  aria-label={`Listen to ${title}`}
+>
+  <Icon name="headphones" /> <span data-listen-label>Listen</span>
+</a>
+
+<style>
+  .listen[aria-pressed="true"] {
+    background: var(--navy-800);
+    border-color: var(--navy-800);
+    color: var(--white);
+  }
+</style>

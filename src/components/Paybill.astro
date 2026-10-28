@@ -51,18 +51,22 @@ const digits = (value: string) => value.replace(/\s+/g, "");
 </div>
 
 <script>
-  document.querySelectorAll<HTMLButtonElement>("button[data-copy]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const text = button.querySelector<HTMLElement>("[data-copy-text]");
-      try {
-        await navigator.clipboard.writeText(button.dataset.copy ?? "");
-        if (text) text.textContent = "Copied";
-      } catch {
-        if (text) text.textContent = "Copy failed";
-      }
-      setTimeout(() => {
-        if (text) text.textContent = "Copy";
-      }, 2000);
+  import { onPage } from "../scripts/page";
+
+  onPage(() => {
+    document.querySelectorAll<HTMLButtonElement>("button[data-copy]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const text = button.querySelector<HTMLElement>("[data-copy-text]");
+        try {
+          await navigator.clipboard.writeText(button.dataset.copy ?? "");
+          if (text) text.textContent = "Copied";
+        } catch {
+          if (text) text.textContent = "Copy failed";
+        }
+        setTimeout(() => {
+          if (text) text.textContent = "Copy";
+        }, 2000);
+      });
     });
   });
 </script>

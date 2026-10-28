@@ -3,51 +3,97 @@ import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import SermonCard from "../../components/SermonCard.astro";
-import { settings } from "../../lib/site";
+import ListenButton from "../../components/ListenButton.astro";
+import Icon from "../../components/Icon.astro";
+import { getBranches, liveUrl, sermonImage, sermonMeta, settings } from "../../lib/site";
 
+const branches = await getBranches();
 const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const [latest, ...rest] = sermons;
 const series = [...new Set(sermons.map((s) => s.data.series).filter(Boolean))].sort();
+const speakers = [...new Set(sermons.map((s) => s.data.speaker).filter(Boolean))].sort();
+const latestImage = latest ? sermonImage(latest) : "";
+const live = liveUrl();
 ---
 
 <Base title="Sermons" description={`Watch and listen to sermons from ${settings.siteName}.`}>
-  <PageHead eyebrow="Messages" title="Sermons" intro="Watch or listen again to recent messages." />
+  <PageHead eyebrow="Messages" title="Sermons" intro="Watch or listen again. Audio keeps playing while you look around the site." />
   <section class="section">
     <div class="wrap">
       {
-        sermons.length > 0 ? (
+        latest ? (
           <>
-            <div class="filters" data-reveal>
-              <label class="field">
-                <span>Search</span>
-                <input class="input" type="search" placeholder="Title, speaker or scripture" data-search />
-              </label>
-              {series.length > 0 && (
-                <label class="field">
-                  <span>Series</span>
-                  <select class="input" data-series>
-                    <option value="">All series</option>
-                    {series.map((s) => <option>{s}</option>)}
-                  </select>
-                </label>
-              )}
-            </div>
-            <div class="grid grid--3" data-sermons data-reveal="stagger">
-              {sermons.map((s) => (
-                <div
-                  data-sermon
-                  data-series={s.data.series}
-                  data-text={[s.data.title, s.data.speaker, s.data.scripture, s.data.series].join(" ").toLowerCase()}
-                >
-                  <SermonCard sermon={s} />
+            <article class="latest card" data-reveal>
+              <a class="latest__art" href={`/sermons/${latest.id}/`} aria-hidden="true" tabindex="-1">
+                {latestImage ? <img src={latestImage} alt="" decoding="async" /> : <Icon name="play" />}
+              </a>
+              <div class="latest__body">
+                <span class="eyebrow">Latest message{latest.data.series && ` · ${latest.data.series}`}</span>
+                <h2><a href={`/sermons/${latest.id}/`}>{latest.data.title}</a></h2>
+                <p class="card__meta">{sermonMeta(latest, branches)}{latest.data.scripture && ` · ${latest.data.scripture}`}</p>
+                {latest.data.summary && <p>{latest.data.summary}</p>}
+                <div class="btn-row">
+                  {latest.data.audio && (
+                    <ListenButton src={latest.data.audio} title={latest.data.title} meta={sermonMeta(latest, branches)} href={`/sermons/${latest.id}/`} />
+                  )}
+                  <a class="btn btn--outline" href={`/sermons/${latest.id}/`}>
+                    {latest.data.video ? <><Icon name="play" /> Watch</> : "Read the notes"}
+                  </a>
                 </div>
-              ))}
-            </div>
-            <p class="empty" data-none hidden>No sermons match your search.</p>
+              </div>
+            </article>
+
+            {rest.length > 0 && (
+              <>
+                <div class="filters" data-reveal>
+                  <label class="field">
+                    <span>Search</span>
+                    <input class="input" type="search" placeholder="Title, speaker or scripture" data-search />
+                  </label>
+                  {series.length > 0 && (
+                    <label class="field">
+                      <span>Series</span>
+                      <select class="input" data-filter="series">
+                        <option value="">All series</option>
+                        {series.map((s) => <option>{s}</option>)}
+                      </select>
+                    </label>
+                  )}
+                  {speakers.length > 1 && (
+                    <label class="field">
+                      <span>Speaker</span>
+                      <select class="input" data-filter="speaker">
+                        <option value="">Everyone</option>
+                        {speakers.map((s) => <option>{s}</option>)}
+                      </select>
+                    </label>
+                  )}
+                  <label class="choice filters__audio">
+                    <input type="checkbox" data-audio-only />
+                    <span>Audio only (saves data)</span>
+                  </label>
+                </div>
+                <div class="grid grid--3" data-sermons data-reveal="stagger">
+                  {rest.map((s) => (
+                    <div
+                      data-sermon
+                      data-series={s.data.series}
+                      data-speaker={s.data.speaker}
+                      data-audio={s.data.audio ? "yes" : ""}
+                      data-text={[s.data.title, s.data.speaker, s.data.scripture, s.data.series, s.data.summary].join(" ").toLowerCase()}
+                    >
+                      <SermonCard sermon={s} />
+                    </div>
+                  ))}
+                </div>
+                <p class="empty" data-none hidden>No sermons match your search.</p>
+              </>
+            )}
           </>
         ) : (
           <p class="empty">
-            Sermons will appear here soon. Meanwhile, find past services
-            {settings.facebookUrl ? <a href={settings.facebookUrl} target="_blank" rel="noopener">on our Facebook page</a> : "on our Facebook page"}.
+            Sermons will appear here soon.{" "}
+            {live ? <>Meanwhile, find past services <a href={live} target="_blank" rel="noopener">on our page</a>.</> : <>Meanwhile, <a href="/visit/">join us on a Sunday</a>.</>}
           </p>
         )
       }
@@ -56,42 +102,108 @@ const series = [...new Set(sermons.map((s) => s.data.series).filter(Boolean))].s
 </Base>
 
 <script>
-  const search = document.querySelector<HTMLInputElement>("[data-search]");
-  const series = document.querySelector<HTMLSelectElement>("[data-series]");
-  const items = document.querySelectorAll<HTMLElement>("[data-sermon]");
-  const none = document.querySelector<HTMLElement>("[data-none]");
-  const apply = () => {
-    const q = (search?.value ?? "").trim().toLowerCase();
-    const s = series?.value ?? "";
-    let shown = 0;
-    items.forEach((el) => {
-      const ok = (!q || (el.dataset.text ?? "").includes(q)) && (!s || el.dataset.series === s);
-      el.hidden = !ok;
-      if (ok) shown++;
-    });
-    if (none) none.hidden = shown > 0;
-  };
-  search?.addEventListener("input", apply);
-  series?.addEventListener("change", apply);
+  import { onPage } from "../../scripts/page";
+
+  onPage(() => {
+    const search = document.querySelector<HTMLInputElement>("[data-search]");
+    const filters = [...document.querySelectorAll<HTMLSelectElement>("select[data-filter]")];
+    const audioOnly = document.querySelector<HTMLInputElement>("[data-audio-only]");
+    const items = document.querySelectorAll<HTMLElement>("[data-sermon]");
+    const none = document.querySelector<HTMLElement>("[data-none]");
+    const apply = () => {
+      const q = (search?.value ?? "").trim().toLowerCase();
+      let shown = 0;
+      items.forEach((el) => {
+        const ok =
+          (!q || (el.dataset.text ?? "").includes(q)) &&
+          filters.every((f) => !f.value || el.dataset[f.dataset.filter!] === f.value) &&
+          (!audioOnly?.checked || el.dataset.audio === "yes");
+        el.hidden = !ok;
+        if (ok) shown++;
+      });
+      if (none) none.hidden = shown > 0;
+    };
+    search?.addEventListener("input", apply);
+    filters.forEach((f) => f.addEventListener("change", apply));
+    audioOnly?.addEventListener("change", apply);
+  });
 </script>
 
 <style>
+  .latest {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  @media (min-width: 860px) {
+    .latest {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+
+  .latest__art {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    color: var(--white);
+    background: radial-gradient(circle at 30% 20%, var(--blue-600), var(--navy-900));
+  }
+
+  .latest__art img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .latest__art :global(svg) {
+    width: 72px;
+    height: 72px;
+  }
+
+  .latest__body {
+    padding: 0 1.25rem 1.5rem;
+  }
+
+  @media (min-width: 860px) {
+    .latest__body {
+      padding: 1.5rem 1.75rem 1.5rem 0;
+    }
+  }
+
+  .latest h2 {
+    margin: 0.35rem 0 0.4rem;
+  }
+
+  .latest h2 a {
+    color: var(--navy-800);
+    text-decoration: none;
+  }
+
   .filters {
     display: grid;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    align-items: end;
   }
 
-  @media (min-width: 640px) {
+  @media (min-width: 760px) {
     .filters {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-      max-width: 44rem;
+      grid-template-columns: minmax(0, 2fr) repeat(auto-fit, minmax(10rem, 1fr));
     }
   }
 
   .filters .field span {
     font-weight: 700;
     color: var(--navy-800);
+  }
+
+  .filters__audio {
+    min-height: 48px;
+    align-items: center;
   }
 
   [data-sermon][hidden] {

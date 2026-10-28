@@ -6,7 +6,9 @@ import "../styles/global.css";
 // The two fonts used above the fold are preloaded so the headline doesn't flash a fallback font.
 import outfitFont from "@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2?url";
 import montserratFont from "@fontsource-variable/montserrat/files/montserrat-latin-wght-normal.woff2?url";
+import { ClientRouter } from "astro:transitions";
 import Header from "../components/Header.astro";
+import AudioDock from "../components/AudioDock.astro";
 import Footer from "../components/Footer.astro";
 import Icon from "../components/Icon.astro";
 import { settings, whatsappLink } from "../lib/site";
@@ -38,6 +40,11 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
     <link rel="preload" as="font" type="font/woff2" href={outfitFont} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={montserratFont} crossorigin />
     <meta name="theme-color" content="#0b2545" />
+    <!--
+      Pages change without a full reload: a short cross-fade (none for reduced motion), and the
+      sermon player below keeps playing. Scripts set pages up with onPage() (src/scripts/page.ts).
+    -->
+    <ClientRouter />
     <!--
       Animations hide content until they run, so they only switch on when scripts work and the
       visitor hasn't asked for reduced motion. If the animation script hasn't started within
@@ -75,6 +82,7 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
         </a>
       )
     }
+    <AudioDock />
     <script>
       import "../scripts/motion";
     </script>
@@ -90,5 +98,14 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
 
   main {
     flex: 1;
+  }
+
+  /* Room for the sermon player so it never covers the footer or the WhatsApp button. */
+  :global(body:has([data-dock]:not([hidden]))) {
+    padding-bottom: 7rem;
+  }
+
+  :global(body:has([data-dock]:not([hidden])) .wa-float) {
+    bottom: 7.5rem;
   }
 </style>

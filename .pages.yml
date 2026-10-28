@@ -149,7 +149,8 @@ content:
         type: reference
         options: { collection: branches, search: town, label: "{fields.town}" }
       - { name: video, label: "Facebook or YouTube video link", type: string }
-      - { name: audio, label: Audio file (optional), type: file }
+      - { name: audio, label: "Audio file (optional, MP3 — about 1 MB per 10 minutes at 64 kbps)", type: file }
+      - { name: image, label: "Artwork (optional; a YouTube video's picture is used if empty)", type: image }
       - { name: summary, label: One-line summary, type: string }
       - { name: body, label: Sermon notes (optional), type: rich-text }
 

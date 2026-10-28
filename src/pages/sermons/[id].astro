@@ -3,65 +3,110 @@ import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import VideoEmbed from "../../components/VideoEmbed.astro";
+import ListenButton from "../../components/ListenButton.astro";
+import SermonCard from "../../components/SermonCard.astro";
 import Icon from "../../components/Icon.astro";
-import { findBranch, formatDate, getBranches, type Sermon } from "../../lib/site";
+import { bibleLink, getBranches, sermonImage, sermonMeta, type Sermon } from "../../lib/site";
 
 export async function getStaticPaths() {
-  const sermons = await getCollection("sermons");
-  return sermons.map((sermon) => ({ params: { id: sermon.id }, props: { sermon } }));
+  const sermons = (await getCollection("sermons")).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  return sermons.map((sermon) => ({ params: { id: sermon.id }, props: { sermon, sermons } }));
 }
 
-const { sermon } = Astro.props as { sermon: Sermon };
+const { sermon, sermons } = Astro.props as { sermon: Sermon; sermons: Sermon[] };
 const d = sermon.data;
 const { Content } = await render(sermon);
-const branch = findBranch(await getBranches(), d.branch);
-const meta = [d.speaker, formatDate(d.date, { weekday: "long", month: "long" }), branch?.data.town].filter(Boolean).join(" · ");
+const branches = await getBranches();
+const meta = sermonMeta(sermon, branches);
+const href = `/sermons/${sermon.id}/`;
+// More from the same series first, then the newest others; three in all.
+const others = sermons.filter((s) => s.id !== sermon.id);
+const more = [
+  ...others.filter((s) => d.series && s.data.series === d.series),
+  ...others.filter((s) => !d.series || s.data.series !== d.series),
+].slice(0, 3);
 ---
 
-<Base title={d.title} description={d.summary || `${d.title} — ${meta}`}>
-  <PageHead eyebrow={d.series || "Sermon"} title={d.title} intro={meta} />
+<Base title={d.title} description={d.summary || `${d.title} — ${meta}`} image={sermonImage(sermon) || undefined}>
+  <PageHead eyebrow={d.series || "Sermon"} title={d.title} intro={meta}>
+    <div class="btn-row sermon-actions">
+      {d.audio && <ListenButton src={d.audio} title={d.title} meta={meta} href={href} />}
+      <a class="btn btn--light" data-share data-title={d.title} href="https://wa.me/" target="_blank" rel="noopener">
+        <Icon name="whatsapp" /> Share
+      </a>
+    </div>
+  </PageHead>
   <section class="section">
     <div class="wrap sermon" data-intro>
       {d.video && <VideoEmbed url={d.video} title={d.title} />}
       {
         d.audio && (
-          <div class="card audio">
-            <h2><Icon name="headphones" /> Listen</h2>
-            <p class="card__meta">Audio uses much less data than video.</p>
-            <audio controls preload="none" src={d.audio} />
-            <p><a href={d.audio} download>Download the audio</a></p>
-          </div>
+          <p class="card__meta audio-note">
+            <Icon name="headphones" /> Listening uses much less data than video, and keeps playing while you browse.{" "}
+            <a href={d.audio} download>Download the audio</a> to listen offline.
+          </p>
         )
       }
-      {d.scripture && <p class="scripture"><strong>Scripture:</strong> {d.scripture}</p>}
+      {
+        d.scripture && (
+          <p class="scripture">
+            <strong>Scripture:</strong> {d.scripture} ·{" "}
+            <a href={bibleLink(d.scripture)} target="_blank" rel="noopener">Read it</a>
+          </p>
+        )
+      }
       {d.summary && <p class="lead">{d.summary}</p>}
       <div class="prose"><Content /></div>
       <p><a href="/sermons/">← All sermons</a></p>
     </div>
   </section>
+  {
+    more.length > 0 && (
+      <section class="section section--tint">
+        <div class="wrap">
+          <div class="section__head" data-reveal>
+            <h2>{d.series && more.some((s) => s.data.series === d.series) ? `More from ${d.series}` : "More messages"}</h2>
+          </div>
+          <div class="grid grid--3" data-reveal="stagger">
+            {more.map((s) => <SermonCard sermon={s} />)}
+          </div>
+        </div>
+      </section>
+    )
+  }
 </Base>
 
+<script>
+  import { onPage } from "../../scripts/page";
+
+  onPage(() => {
+    // The shared link includes the sermon's address as the visitor sees it.
+    document.querySelectorAll<HTMLAnchorElement>("[data-share]").forEach((a) => {
+      a.href = `https://wa.me/?text=${encodeURIComponent(`${a.dataset.title ?? ""} ${location.href}`)}`;
+    });
+  });
+</script>
+
 <style>
+  .sermon-actions {
+    margin-top: 1.25rem;
+  }
+
   .sermon {
     display: grid;
     gap: 1.5rem;
     max-width: 52rem;
   }
 
-  .audio h2 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.3rem;
+  .audio-note {
+    margin: 0;
   }
 
-  .audio h2 :global(svg) {
+  .audio-note :global(svg) {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.2em;
     color: var(--blue-600);
-  }
-
-  .audio audio {
-    width: 100%;
-    margin-bottom: 0.5rem;
   }
 
   .scripture {

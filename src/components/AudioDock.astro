@@ -1,0 +1,317 @@
+---
+// Sermon audio player docked at the bottom of the screen. It is kept across page changes
+// (transition:persist), so a sermon keeps playing while the visitor browses.
+// Any element with data-listen (data-src, data-title, data-meta, data-href) starts it.
+// The last sermon and position are remembered on the phone, so after a reload it offers to resume.
+---
+
+<div class="dock" data-dock hidden transition:persist="audio-dock">
+  <audio data-audio preload="none"></audio>
+  <button class="dock__btn dock__play" type="button" data-toggle aria-label="Play">
+    <span class="dock__icon" data-icon-play><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13l10.5-6.5z" /></svg></span>
+    <span class="dock__icon" data-icon-pause hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg></span>
+  </button>
+  <div class="dock__info">
+    <a class="dock__title" data-title href="/sermons/"></a>
+    <div class="dock__bar">
+      <span class="dock__time" data-now>0:00</span>
+      <input class="dock__seek" type="range" min="0" max="0" step="1" value="0" data-seek aria-label="Position in the sermon" />
+      <span class="dock__time" data-total>0:00</span>
+    </div>
+  </div>
+  <div class="dock__extra">
+    <button class="dock__btn dock__small" type="button" data-skip="-15" aria-label="Back 15 seconds">−15</button>
+    <button class="dock__btn dock__small" type="button" data-skip="30" aria-label="Forward 30 seconds">+30</button>
+    <button class="dock__btn dock__small" type="button" data-speed aria-label="Playback speed">1×</button>
+  </div>
+  <button class="dock__btn dock__close" type="button" data-close aria-label="Close the player">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+  </button>
+</div>
+
+<script>
+  type Track = { src: string; title: string; meta: string; href: string; time?: number };
+  const KEY = "hom:audio";
+  const SPEEDS = [1, 1.25, 1.5, 0.75];
+
+  const dock = document.querySelector<HTMLElement>("[data-dock]")!;
+  const audio = dock.querySelector<HTMLAudioElement>("[data-audio]")!;
+  const toggle = dock.querySelector<HTMLButtonElement>("[data-toggle]")!;
+  const title = dock.querySelector<HTMLAnchorElement>("[data-title]")!;
+  const seek = dock.querySelector<HTMLInputElement>("[data-seek]")!;
+  const now = dock.querySelector<HTMLElement>("[data-now]")!;
+  const total = dock.querySelector<HTMLElement>("[data-total]")!;
+  const speed = dock.querySelector<HTMLButtonElement>("[data-speed]")!;
+  let track: Track | null = null;
+  let lastSave = 0;
+
+  const clock = (s: number) => {
+    if (!Number.isFinite(s)) return "0:00";
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = String(Math.floor(s % 60)).padStart(2, "0");
+    return h ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+  };
+
+  function save() {
+    try {
+      if (track) localStorage.setItem(KEY, JSON.stringify({ ...track, time: Math.floor(audio.currentTime) }));
+      else localStorage.removeItem(KEY);
+    } catch {
+      /* storage blocked: nothing to resume later */
+    }
+  }
+
+  // Listen buttons on the current page show whether their sermon is the one playing.
+  function syncButtons() {
+    document.querySelectorAll<HTMLElement>("[data-listen]").forEach((b) => {
+      const playing = track?.src === b.dataset.src && !audio.paused;
+      b.setAttribute("aria-pressed", String(playing));
+      const label = b.querySelector<HTMLElement>("[data-listen-label]");
+      if (label) label.textContent = playing ? "Pause" : track?.src === b.dataset.src ? "Resume" : "Listen";
+    });
+  }
+
+  function syncDock() {
+    const playing = !audio.paused;
+    toggle.setAttribute("aria-label", playing ? "Pause" : "Play");
+    toggle.querySelector("[data-icon-play]")!.toggleAttribute("hidden", playing);
+    toggle.querySelector("[data-icon-pause]")!.toggleAttribute("hidden", !playing);
+    syncButtons();
+  }
+
+  function load(next: Track, play: boolean) {
+    track = next;
+    audio.src = next.src;
+    audio.playbackRate = Number(speed.dataset.rate ?? 1);
+    title.textContent = next.title;
+    title.href = next.href;
+    title.title = next.meta;
+    dock.hidden = false;
+    if (next.time) {
+      // Resume where they left off once the length is known.
+      audio.addEventListener("loadedmetadata", () => (audio.currentTime = next.time!), { once: true });
+    }
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: next.title, artist: next.meta, album: "Hope Outreach Ministries" });
+    }
+    if (play) audio.play().catch(() => syncDock());
+    else audio.preload = "metadata";
+    syncDock();
+  }
+
+  // Capture phase: handled before the page router sees the click on the link.
+  document.addEventListener("click", (e) => {
+    const button = (e.target as Element).closest<HTMLElement>("[data-listen]");
+    if (!button?.dataset.src) return;
+    e.preventDefault();
+    if (track?.src === button.dataset.src) {
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+      return;
+    }
+    load(
+      { src: button.dataset.src, title: button.dataset.title ?? "Sermon", meta: button.dataset.meta ?? "", href: button.dataset.href ?? "/sermons/" },
+      true,
+    );
+  }, true);
+
+  toggle.addEventListener("click", () => (audio.paused ? audio.play().catch(() => {}) : audio.pause()));
+  dock.querySelectorAll<HTMLButtonElement>("[data-skip]").forEach((b) =>
+    b.addEventListener("click", () => {
+      audio.currentTime = Math.max(0, Math.min(audio.duration || Infinity, audio.currentTime + Number(b.dataset.skip)));
+    }),
+  );
+  speed.addEventListener("click", () => {
+    const rate = SPEEDS[(SPEEDS.indexOf(Number(speed.dataset.rate ?? 1)) + 1) % SPEEDS.length];
+    speed.dataset.rate = String(rate);
+    speed.textContent = `${rate}×`;
+    audio.playbackRate = rate;
+  });
+  dock.querySelector("[data-close]")!.addEventListener("click", () => {
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+    track = null;
+    dock.hidden = true;
+    save();
+    syncButtons();
+  });
+  seek.addEventListener("input", () => (audio.currentTime = Number(seek.value)));
+
+  audio.addEventListener("loadedmetadata", () => {
+    seek.max = String(Math.floor(audio.duration || 0));
+    total.textContent = clock(audio.duration);
+  });
+  audio.addEventListener("timeupdate", () => {
+    seek.value = String(Math.floor(audio.currentTime));
+    now.textContent = clock(audio.currentTime);
+    if (Date.now() - lastSave > 5000) {
+      lastSave = Date.now();
+      save();
+    }
+  });
+  audio.addEventListener("play", syncDock);
+  audio.addEventListener("pause", () => {
+    save();
+    syncDock();
+  });
+  audio.addEventListener("ended", () => {
+    if (track) track.time = 0;
+    save();
+    syncDock();
+  });
+
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.setActionHandler("play", () => audio.play());
+    navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+    navigator.mediaSession.setActionHandler("seekbackward", () => (audio.currentTime = Math.max(0, audio.currentTime - 15)));
+    navigator.mediaSession.setActionHandler("seekforward", () => (audio.currentTime += 30));
+  }
+
+  // After a full reload: show the last sermon, paused, ready to resume.
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) ?? "null") as Track | null;
+    if (saved?.src) load(saved, false);
+  } catch {
+    /* nothing saved */
+  }
+
+  document.addEventListener("astro:page-load", syncButtons);
+</script>
+
+<style>
+  .dock {
+    position: fixed;
+    z-index: 60;
+    left: 50%;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(calc(100% - 1.5rem), 46rem);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 18px;
+    background: var(--navy-900);
+    color: var(--white);
+    box-shadow: 0 16px 40px rgb(5 16 38 / 35%);
+  }
+
+  .dock__btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 10%);
+    color: var(--white);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .dock__btn:hover {
+    background: rgb(255 255 255 / 18%);
+  }
+
+  .dock__icon {
+    display: grid;
+  }
+
+  .dock__btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .dock__play {
+    width: 48px;
+    height: 48px;
+    background: var(--gold-500);
+    color: var(--navy-900);
+  }
+
+  .dock__play:hover {
+    background: var(--gold-500);
+    filter: brightness(1.05);
+  }
+
+  .dock__small {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .dock__close {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+  }
+
+  .dock__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dock__title {
+    display: block;
+    color: var(--white);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dock__title:hover {
+    text-decoration: underline;
+    color: var(--white);
+  }
+
+  .dock__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .dock__time {
+    font-size: 0.78rem;
+    color: var(--sky-200);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dock__seek {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--gold-500);
+    height: 24px;
+  }
+
+  .dock__extra {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  /* On a phone: title and bar on top, controls below. */
+  @media (max-width: 599px) {
+    .dock {
+      flex-wrap: wrap;
+      gap: 0.5rem 0.6rem;
+    }
+
+    .dock__info {
+      order: -1;
+      flex-basis: calc(100% - 52px);
+    }
+
+    .dock__close {
+      order: -1;
+    }
+
+    .dock__extra {
+      flex: 1;
+      justify-content: flex-end;
+    }
+  }
+</style>

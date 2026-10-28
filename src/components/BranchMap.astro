@@ -34,63 +34,68 @@ const pins = branches
 }
 
 <script>
-  type Pin = {
-    town: string;
-    pastor: string;
-    lat: number;
-    lng: number;
-    href: string;
-    directions: string;
-    approximate: boolean;
-  };
+  import { onPage } from "../scripts/page";
 
-  const esc = (s: string) =>
-    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+  onPage((signal) => {
+    type Pin = {
+      town: string;
+      pastor: string;
+      lat: number;
+      lng: number;
+      href: string;
+      directions: string;
+      approximate: boolean;
+    };
 
-  async function show(box: HTMLElement) {
-    if (box.classList.contains("is-loaded")) return;
-    box.classList.add("is-loaded");
-    const pins = JSON.parse(box.dataset.branchMap ?? "[]") as Pin[];
-    const [{ default: L }] = await Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")]);
-    box.replaceChildren();
-    const touch = matchMedia("(pointer: coarse)").matches;
-    const map = L.map(box, {
-      scrollWheelZoom: false, // the page keeps scrolling past the map
-      dragging: !touch, // one finger scrolls the page on a phone; two fingers zoom the map
+    const esc = (s: string) =>
+      s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+    async function show(box: HTMLElement) {
+      if (box.classList.contains("is-loaded")) return;
+      box.classList.add("is-loaded");
+      const pins = JSON.parse(box.dataset.branchMap ?? "[]") as Pin[];
+      const [{ default: L }] = await Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")]);
+      box.replaceChildren();
+      const touch = matchMedia("(pointer: coarse)").matches;
+      const map = L.map(box, {
+        scrollWheelZoom: false, // the page keeps scrolling past the map
+        dragging: !touch, // one finger scrolls the page on a phone; two fingers zoom the map
+      });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+      const icon = L.divIcon({ className: "branch-pin", html: "<span></span>", iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26] });
+      const markers = pins.map((p) =>
+        L.marker([p.lat, p.lng], { icon, title: p.town, alt: p.town })
+          .bindPopup(
+            `<strong>${esc(p.town)}</strong>` +
+              (p.pastor ? `<br>${esc(p.pastor)}` : "") +
+              (p.approximate ? `<br><small>Pin shows the nearest known location.</small>` : "") +
+              `<br><a href="${esc(p.href)}">Branch details</a>` +
+              (p.directions ? ` · <a href="${esc(p.directions)}" target="_blank" rel="noopener">Directions</a>` : ""),
+          )
+          .addTo(map),
+      );
+      map.fitBounds(L.featureGroup(markers).getBounds(), { padding: [40, 40], maxZoom: 12 });
+    }
+
+    document.querySelectorAll<HTMLElement>("[data-branch-map]").forEach((box) => {
+      box.querySelector("[data-map-load]")?.addEventListener("click", () => show(box));
+      const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+      if (saveData || !("IntersectionObserver" in window)) return;
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            show(box);
+          }
+        },
+        { rootMargin: "300px 0px" },
+      );
+      io.observe(box);
+      signal.addEventListener("abort", () => io.disconnect());
     });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
-    const icon = L.divIcon({ className: "branch-pin", html: "<span></span>", iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26] });
-    const markers = pins.map((p) =>
-      L.marker([p.lat, p.lng], { icon, title: p.town, alt: p.town })
-        .bindPopup(
-          `<strong>${esc(p.town)}</strong>` +
-            (p.pastor ? `<br>${esc(p.pastor)}` : "") +
-            (p.approximate ? `<br><small>Pin shows the nearest known location.</small>` : "") +
-            `<br><a href="${esc(p.href)}">Branch details</a>` +
-            (p.directions ? ` · <a href="${esc(p.directions)}" target="_blank" rel="noopener">Directions</a>` : ""),
-        )
-        .addTo(map),
-    );
-    map.fitBounds(L.featureGroup(markers).getBounds(), { padding: [40, 40], maxZoom: 12 });
-  }
-
-  document.querySelectorAll<HTMLElement>("[data-branch-map]").forEach((box) => {
-    box.querySelector("[data-map-load]")?.addEventListener("click", () => show(box));
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (saveData || !("IntersectionObserver" in window)) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect();
-          show(box);
-        }
-      },
-      { rootMargin: "300px 0px" },
-    );
-    io.observe(box);
   });
 </script>
 

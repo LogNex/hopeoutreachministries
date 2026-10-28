@@ -95,19 +95,23 @@ const listTowns = (towns: string[]) =>
 </Base>
 
 <script>
-  const select = document.querySelector<HTMLSelectElement>("[data-branch-select]");
-  const cards = document.querySelectorAll<HTMLElement>("[data-branch-paybill]");
-  const apply = () => {
-    cards.forEach((card) => {
-      card.hidden = Boolean(select?.value) && card.dataset.branchPaybill !== select?.value;
-    });
-  };
-  select?.addEventListener("change", apply);
-  const fromUrl = new URLSearchParams(location.search).get("branch");
-  if (select && fromUrl && [...select.options].some((o) => o.value === fromUrl)) {
-    select.value = fromUrl;
-    apply();
-  }
+  import { onPage } from "../scripts/page";
+
+  onPage(() => {
+    const select = document.querySelector<HTMLSelectElement>("[data-branch-select]");
+    const cards = document.querySelectorAll<HTMLElement>("[data-branch-paybill]");
+    const apply = () => {
+      cards.forEach((card) => {
+        card.hidden = Boolean(select?.value) && card.dataset.branchPaybill !== select?.value;
+      });
+    };
+    select?.addEventListener("change", apply);
+    const fromUrl = new URLSearchParams(location.search).get("branch");
+    if (select && fromUrl && [...select.options].some((o) => o.value === fromUrl)) {
+      select.value = fromUrl;
+      apply();
+    }
+  });
 </script>
 
 <style>

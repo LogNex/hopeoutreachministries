@@ -178,14 +178,18 @@ const ministries = await getMinistries();
 </Base>
 
 <script>
-  // The site is built ahead of time; hide events that have finished since the last build.
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
-  document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
-    if ((el.dataset.ends ?? "") < today) el.remove();
-  });
-  // If every event has passed since the build, drop the whole section rather than show it empty.
-  document.querySelectorAll<HTMLElement>("[data-events-section]").forEach((section) => {
-    if (!section.querySelector("[data-event]")) section.remove();
+  import { onPage } from "../scripts/page";
+
+  onPage(() => {
+    // The site is built ahead of time; hide events that have finished since the last build.
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+    document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
+      if ((el.dataset.ends ?? "") < today) el.remove();
+    });
+    // If every event has passed since the build, drop the whole section rather than show it empty.
+    document.querySelectorAll<HTMLElement>("[data-events-section]").forEach((section) => {
+      if (!section.querySelector("[data-event]")) section.remove();
+    });
   });
 </script>
 

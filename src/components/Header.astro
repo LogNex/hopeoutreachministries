@@ -31,7 +31,7 @@ const moreActive = more.some((item) => isCurrent(item.href));
   background there. It slides away while you scroll down and comes back, with a solid
   background, as soon as you scroll up. Back at the top it turns transparent again.
 -->
-<div class="site-top" data-site-top>
+<div class="site-top" data-site-top transition:name="site-top" transition:animate="none">
   {
     settings.announcement && (
       <div class="announce">
@@ -105,112 +105,126 @@ const moreActive = more.some((item) => isCurrent(item.href));
 
 <script>
   import { animate } from "motion/mini";
+  import { onPage } from "../scripts/page";
 
-  const top = document.querySelector<HTMLElement>("[data-site-top]");
-  const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
-  const nav = document.getElementById("site-nav");
+  // The header is new markup on every page (its active link changes), so it is set up per page.
+  onPage((signal) => {
+    const top = document.querySelector<HTMLElement>("[data-site-top]");
+    const toggle = document.querySelector<HTMLButtonElement>(".nav-toggle");
+    const nav = document.getElementById("site-nav");
 
-  if (top && toggle && nav) {
-    const root = document.documentElement;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const TOP_ZONE = 8; // within this many px of the top the header is transparent
-    const HIDE_AFTER = 90; // don't hide until the visitor is this far down
-    const DELTA = 6; // ignore scroll jitter smaller than this
+    if (top && toggle && nav) {
+      const root = document.documentElement;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const TOP_ZONE = 8; // within this many px of the top the header is transparent
+      const HIDE_AFTER = 90; // don't hide until the visitor is this far down
+      const DELTA = 6; // ignore scroll jitter smaller than this
 
-    let lastY = Math.max(0, window.scrollY);
-    const isOpen = () => toggle.getAttribute("aria-expanded") === "true";
+      let lastY = Math.max(0, window.scrollY);
+      const isOpen = () => toggle.getAttribute("aria-expanded") === "true";
 
-    function sync() {
-      const y = Math.max(0, window.scrollY); // iOS can report negative values while bouncing
-      if (y <= TOP_ZONE) {
-        top!.classList.remove("is-solid", "is-hidden");
+      function sync() {
+        const y = Math.max(0, window.scrollY); // iOS can report negative values while bouncing
+        if (y <= TOP_ZONE) {
+          top!.classList.remove("is-solid", "is-hidden");
+          lastY = y;
+          return;
+        }
+        if (isOpen()) {
+          top!.classList.add("is-solid");
+          top!.classList.remove("is-hidden");
+          lastY = y;
+          return;
+        }
+        const diff = y - lastY;
+        if (Math.abs(diff) < DELTA) return;
+        if (diff > 0) {
+          if (y > HIDE_AFTER) {
+            top!.classList.add("is-hidden"); // scrolling down
+            setMore(false);
+          }
+        } else {
+          top!.classList.remove("is-hidden"); // scrolling up
+          top!.classList.add("is-solid");
+        }
         lastY = y;
-        return;
       }
-      if (isOpen()) {
-        top!.classList.add("is-solid");
-        top!.classList.remove("is-hidden");
-        lastY = y;
-        return;
+
+      function setMenu(open: boolean) {
+        toggle!.setAttribute("aria-expanded", String(open));
+        nav!.classList.toggle("is-open", open);
+        top!.classList.toggle("menu-open", open);
+        if (open) {
+          top!.classList.remove("is-hidden");
+          if (!reduceMotion.matches) {
+            animate(
+              nav!,
+              { opacity: [0, 1], transform: ["translateY(-10px)", "translateY(0px)"] },
+              { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
+            ).then(() => {
+              nav!.style.removeProperty("opacity");
+              nav!.style.removeProperty("transform");
+            });
+          }
+        }
+        sync();
       }
-      const diff = y - lastY;
-      if (Math.abs(diff) < DELTA) return;
-      if (diff > 0) {
-        if (y > HIDE_AFTER) {
-          top!.classList.add("is-hidden"); // scrolling down
+
+      // "More" dropdown (desktop only; on a phone its items are part of the flat list).
+      const more = document.querySelector<HTMLElement>("[data-more]");
+      const moreBtn = more?.querySelector<HTMLButtonElement>(".nav-more__btn");
+      const moreOpen = () => more?.classList.contains("is-open") ?? false;
+      function setMore(open: boolean) {
+        more?.classList.toggle("is-open", open);
+        moreBtn?.setAttribute("aria-expanded", String(open));
+      }
+      moreBtn?.addEventListener("click", () => setMore(!moreOpen()));
+      document.addEventListener(
+        "click",
+        (e) => {
+          if (more && !more.contains(e.target as Node)) setMore(false);
+        },
+        { signal },
+      );
+      more?.addEventListener("focusout", (e) => {
+        if (!more.contains(e.relatedTarget as Node | null)) setMore(false);
+      });
+
+      toggle.addEventListener("click", () => setMenu(!isOpen()));
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (moreOpen()) {
           setMore(false);
+          moreBtn?.focus();
+        } else if (isOpen()) {
+          setMenu(false);
+          toggle.focus();
         }
-      } else {
-        top!.classList.remove("is-hidden"); // scrolling up
-        top!.classList.add("is-solid");
-      }
-      lastY = y;
+      }, { signal });
+      window.addEventListener(
+        "resize",
+        () => {
+          if (window.innerWidth >= 1024 && isOpen()) setMenu(false);
+        },
+        { signal },
+      );
+
+      // Keyboard users tabbing to the header while it is hidden should see it.
+      top.addEventListener("focusin", () => top.classList.remove("is-hidden"));
+
+      // Scroll events already arrive at most once per frame, and sync() only toggles classes.
+      window.addEventListener("scroll", sync, { passive: true, signal });
+      window.addEventListener("pageshow", sync, { signal });
+
+      // Pages start under the header; keep their top padding equal to its real height.
+      const sizer = new ResizeObserver(() => root.style.setProperty("--top-h", `${top.offsetHeight}px`));
+      sizer.observe(top);
+      signal.addEventListener("abort", () => sizer.disconnect());
+
+      // A page restored part-way down (reload, back button) starts with the solid header.
+      if (lastY > TOP_ZONE) top.classList.add("is-solid");
     }
-
-    function setMenu(open: boolean) {
-      toggle!.setAttribute("aria-expanded", String(open));
-      nav!.classList.toggle("is-open", open);
-      top!.classList.toggle("menu-open", open);
-      if (open) {
-        top!.classList.remove("is-hidden");
-        if (!reduceMotion.matches) {
-          animate(
-            nav!,
-            { opacity: [0, 1], transform: ["translateY(-10px)", "translateY(0px)"] },
-            { duration: 0.22, ease: [0.22, 1, 0.36, 1] },
-          ).then(() => {
-            nav!.style.removeProperty("opacity");
-            nav!.style.removeProperty("transform");
-          });
-        }
-      }
-      sync();
-    }
-
-    // "More" dropdown (desktop only; on a phone its items are part of the flat list).
-    const more = document.querySelector<HTMLElement>("[data-more]");
-    const moreBtn = more?.querySelector<HTMLButtonElement>(".nav-more__btn");
-    const moreOpen = () => more?.classList.contains("is-open") ?? false;
-    function setMore(open: boolean) {
-      more?.classList.toggle("is-open", open);
-      moreBtn?.setAttribute("aria-expanded", String(open));
-    }
-    moreBtn?.addEventListener("click", () => setMore(!moreOpen()));
-    document.addEventListener("click", (e) => {
-      if (more && !more.contains(e.target as Node)) setMore(false);
-    });
-    more?.addEventListener("focusout", (e) => {
-      if (!more.contains(e.relatedTarget as Node | null)) setMore(false);
-    });
-
-    toggle.addEventListener("click", () => setMenu(!isOpen()));
-    document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
-      if (moreOpen()) {
-        setMore(false);
-        moreBtn?.focus();
-      } else if (isOpen()) {
-        setMenu(false);
-        toggle.focus();
-      }
-    });
-    window.addEventListener("resize", () => {
-      if (window.innerWidth >= 1024 && isOpen()) setMenu(false);
-    });
-
-    // Keyboard users tabbing to the header while it is hidden should see it.
-    top.addEventListener("focusin", () => top.classList.remove("is-hidden"));
-
-    // Scroll events already arrive at most once per frame, and sync() only toggles classes.
-    window.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("pageshow", sync);
-
-    // Pages start under the header; keep their top padding equal to its real height.
-    new ResizeObserver(() => root.style.setProperty("--top-h", `${top.offsetHeight}px`)).observe(top);
-
-    // A page restored part-way down (reload, back button) starts with the solid header.
-    if (lastY > TOP_ZONE) top.classList.add("is-solid");
-  }
+  });
 </script>
 
 <style>

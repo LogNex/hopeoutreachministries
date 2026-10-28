@@ -31,62 +31,66 @@ const first = services[0];
 }
 
 <script>
-  type Service = { day: string; time: string; name: string };
-  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const NAIROBI_OFFSET = 3 * 60 * 60 * 1000; // EAT is UTC+3 all year
-  const WINDOW = 2.5 * 60 * 60 * 1000;
+  import { onPage, every } from "../scripts/page";
 
-  function fmt(time: string) {
-    const [h, m] = time.split(":").map(Number);
-    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "pm" : "am"}`;
-  }
+  onPage((signal) => {
+    type Service = { day: string; time: string; name: string };
+    const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const NAIROBI_OFFSET = 3 * 60 * 60 * 1000; // EAT is UTC+3 all year
+    const WINDOW = 2.5 * 60 * 60 * 1000;
 
-  function next(services: Service[]) {
-    const nowUtc = Date.now();
-    const local = new Date(nowUtc + NAIROBI_OFFSET); // read with getUTC* = Nairobi wall clock
-    let best: { s: Service; start: number } | null = null;
-    for (const s of services) {
-      const [h, m] = s.time.split(":").map(Number);
-      const day = DAYS.indexOf(s.day);
-      for (const weekOffset of [-7, 0, 7]) {
-        const delta = ((day - local.getUTCDay() + 7) % 7) + weekOffset;
-        const start =
-          Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + delta, h, m) - NAIROBI_OFFSET;
-        if (start + WINDOW < nowUtc) continue;
-        if (!best || start < best.start) best = { s, start };
+    function fmt(time: string) {
+      const [h, m] = time.split(":").map(Number);
+      return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "pm" : "am"}`;
+    }
+
+    function next(services: Service[]) {
+      const nowUtc = Date.now();
+      const local = new Date(nowUtc + NAIROBI_OFFSET); // read with getUTC* = Nairobi wall clock
+      let best: { s: Service; start: number } | null = null;
+      for (const s of services) {
+        const [h, m] = s.time.split(":").map(Number);
+        const day = DAYS.indexOf(s.day);
+        for (const weekOffset of [-7, 0, 7]) {
+          const delta = ((day - local.getUTCDay() + 7) % 7) + weekOffset;
+          const start =
+            Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + delta, h, m) - NAIROBI_OFFSET;
+          if (start + WINDOW < nowUtc) continue;
+          if (!best || start < best.start) best = { s, start };
+        }
+      }
+      return best;
+    }
+
+    function until(ms: number) {
+      const mins = Math.round(ms / 60000);
+      if (mins < 60) return `in ${mins} min`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `in ${hrs} hr${hrs === 1 ? "" : "s"} ${mins % 60} min`;
+      const days = Math.floor(hrs / 24);
+      return `in ${days} day${days === 1 ? "" : "s"} ${hrs % 24} hr${hrs % 24 === 1 ? "" : "s"}`;
+    }
+
+    function render(box: HTMLElement) {
+      const services = JSON.parse(box.dataset.nextService ?? "[]") as Service[];
+      const live = box.dataset.mode === "live";
+      const n = next(services);
+      const text = box.querySelector(".next__text");
+      if (!n || !text) return;
+      const diff = n.start - Date.now();
+      if (diff <= 0) {
+        box.classList.add("is-live");
+        text.textContent = live ? `Live now: ${n.s.name}` : `${n.s.name} is on now`;
+      } else {
+        box.classList.remove("is-live");
+        text.textContent = `${live ? "Next live" : "Next service"}: ${n.s.day} ${fmt(n.s.time)} (${until(diff)})`;
       }
     }
-    return best;
-  }
 
-  function until(ms: number) {
-    const mins = Math.round(ms / 60000);
-    if (mins < 60) return `in ${mins} min`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `in ${hrs} hr${hrs === 1 ? "" : "s"} ${mins % 60} min`;
-    const days = Math.floor(hrs / 24);
-    return `in ${days} day${days === 1 ? "" : "s"} ${hrs % 24} hr${hrs % 24 === 1 ? "" : "s"}`;
-  }
-
-  function render(box: HTMLElement) {
-    const services = JSON.parse(box.dataset.nextService ?? "[]") as Service[];
-    const live = box.dataset.mode === "live";
-    const n = next(services);
-    const text = box.querySelector(".next__text");
-    if (!n || !text) return;
-    const diff = n.start - Date.now();
-    if (diff <= 0) {
-      box.classList.add("is-live");
-      text.textContent = live ? `Live now: ${n.s.name}` : `${n.s.name} is on now`;
-    } else {
-      box.classList.remove("is-live");
-      text.textContent = `${live ? "Next live" : "Next service"}: ${n.s.day} ${fmt(n.s.time)} (${until(diff)})`;
-    }
-  }
-
-  document.querySelectorAll<HTMLElement>("[data-next-service]").forEach((box) => {
-    render(box);
-    setInterval(() => render(box), 60000);
+    document.querySelectorAll<HTMLElement>("[data-next-service]").forEach((box) => {
+      render(box);
+      every(60000, () => render(box), signal);
+    });
   });
 </script>
 

@@ -124,31 +124,34 @@ const children = (await getMinistries()).find((m) => m.id === "children");
 
 <script>
   import { getMyBranch } from "../scripts/my-branch";
+  import { onPage } from "../scripts/page";
 
-  // Without JavaScript every branch is listed; with it, one at a time behind the chips.
-  const pick = document.querySelector<HTMLElement>("[data-visit-pick]");
-  const radios = [...document.querySelectorAll<HTMLInputElement>("input[name=visit-branch]")];
-  const panels = [...document.querySelectorAll<HTMLElement>("[data-visit-panel]")];
-  const formBranch = document.querySelector<HTMLSelectElement>("[data-kind=visit] select[name=branch]");
+  onPage(() => {
+    // Without JavaScript every branch is listed; with it, one at a time behind the chips.
+    const pick = document.querySelector<HTMLElement>("[data-visit-pick]");
+    const radios = [...document.querySelectorAll<HTMLInputElement>("input[name=visit-branch]")];
+    const panels = [...document.querySelectorAll<HTMLElement>("[data-visit-panel]")];
+    const formBranch = document.querySelector<HTMLSelectElement>("[data-kind=visit] select[name=branch]");
 
-  function choose(id: string, push: boolean) {
-    const radio = radios.find((r) => r.value === id) ?? radios[0];
-    if (!radio) return;
-    radio.checked = true;
-    panels.forEach((p) => (p.hidden = p.dataset.visitPanel !== radio.value));
-    if (formBranch) {
-      formBranch.value = radio.dataset.town ?? "";
-      formBranch.dispatchEvent(new Event("change"));
+    function choose(id: string, push: boolean) {
+      const radio = radios.find((r) => r.value === id) ?? radios[0];
+      if (!radio) return;
+      radio.checked = true;
+      panels.forEach((p) => (p.hidden = p.dataset.visitPanel !== radio.value));
+      if (formBranch) {
+        formBranch.value = radio.dataset.town ?? "";
+        formBranch.dispatchEvent(new Event("change"));
+      }
+      if (push) history.replaceState(null, "", `?branch=${radio.value}`);
     }
-    if (push) history.replaceState(null, "", `?branch=${radio.value}`);
-  }
 
-  if (pick && radios.length) {
-    pick.hidden = false;
-    document.querySelectorAll(".visit__title").forEach((h) => h.classList.add("visually-hidden"));
-    radios.forEach((r) => r.addEventListener("change", () => choose(r.value, true)));
-    choose(new URLSearchParams(location.search).get("branch") || getMyBranch(), false);
-  }
+    if (pick && radios.length) {
+      pick.hidden = false;
+      document.querySelectorAll(".visit__title").forEach((h) => h.classList.add("visually-hidden"));
+      radios.forEach((r) => r.addEventListener("change", () => choose(r.value, true)));
+      choose(new URLSearchParams(location.search).get("branch") || getMyBranch(), false);
+    }
+  });
 </script>
 
 <style>

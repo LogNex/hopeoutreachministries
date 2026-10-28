@@ -53,23 +53,27 @@ const usedMinistries = ministries.filter((m) => articles.some((a) => branchIdFro
 </Base>
 
 <script>
-  const search = document.querySelector<HTMLInputElement>("[data-search]");
-  const ministry = document.querySelector<HTMLSelectElement>("select[data-ministry]");
-  const items = document.querySelectorAll<HTMLElement>("[data-article]");
-  const none = document.querySelector<HTMLElement>("[data-none]");
-  const apply = () => {
-    const q = (search?.value ?? "").trim().toLowerCase();
-    const m = ministry?.value ?? "";
-    let shown = 0;
-    items.forEach((el) => {
-      const ok = (!q || (el.dataset.text ?? "").includes(q)) && (!m || el.dataset.ministry === m);
-      el.hidden = !ok;
-      if (ok) shown++;
-    });
-    if (none) none.hidden = shown > 0;
-  };
-  search?.addEventListener("input", apply);
-  ministry?.addEventListener("change", apply);
+  import { onPage } from "../../scripts/page";
+
+  onPage(() => {
+    const search = document.querySelector<HTMLInputElement>("[data-search]");
+    const ministry = document.querySelector<HTMLSelectElement>("select[data-ministry]");
+    const items = document.querySelectorAll<HTMLElement>("[data-article]");
+    const none = document.querySelector<HTMLElement>("[data-none]");
+    const apply = () => {
+      const q = (search?.value ?? "").trim().toLowerCase();
+      const m = ministry?.value ?? "";
+      let shown = 0;
+      items.forEach((el) => {
+        const ok = (!q || (el.dataset.text ?? "").includes(q)) && (!m || el.dataset.ministry === m);
+        el.hidden = !ok;
+        if (ok) shown++;
+      });
+      if (none) none.hidden = shown > 0;
+    };
+    search?.addEventListener("input", apply);
+    ministry?.addEventListener("change", apply);
+  });
 </script>
 
 <style>

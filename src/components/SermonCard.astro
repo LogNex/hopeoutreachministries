@@ -1,28 +1,30 @@
 ---
 import Icon from "./Icon.astro";
-import { formatDate, type Sermon } from "../lib/site";
+import ListenButton from "./ListenButton.astro";
+import { formatDate, sermonImage, type Sermon } from "../lib/site";
 
 interface Props {
   sermon: Sermon;
 }
 const { sermon } = Astro.props;
 const d = sermon.data;
+const href = `/sermons/${sermon.id}/`;
+const image = sermonImage(sermon);
+const meta = [d.speaker, formatDate(d.date)].filter(Boolean).join(" · ");
 ---
 
 <article class="card card--link sermon-card">
   <div class="sermon-card__thumb" aria-hidden="true">
-    <Icon name="play" />
+    {image ? <img src={image} alt="" loading="lazy" decoding="async" width="320" height="180" /> : <Icon name="play" />}
+    {d.series && <span class="sermon-card__series">{d.series}</span>}
   </div>
-  <div>
-    {d.series && <span class="eyebrow">{d.series}</span>}
-    <h3><a href={`/sermons/${sermon.id}/`}>{d.title}</a></h3>
-    <p class="card__meta">
-      {[d.speaker, formatDate(d.date), d.scripture].filter(Boolean).join(" · ")}
-    </p>
-    <p class="sermon-card__media">
-      {d.video && <span class="pill">Video</span>}
-      {d.audio && <span class="pill"><Icon name="headphones" /> Audio</span>}
-    </p>
+  <div class="sermon-card__body">
+    <h3><a href={href}>{d.title}</a></h3>
+    <p class="card__meta">{[meta, d.scripture].filter(Boolean).join(" · ")}</p>
+    <div class="sermon-card__media">
+      {d.audio && <ListenButton src={d.audio} title={d.title} meta={meta} href={href} variant="small" />}
+      {d.video && <span class="pill"><Icon name="play" /> Video</span>}
+    </div>
   </div>
 </article>
 
@@ -30,20 +32,48 @@ const d = sermon.data;
   .sermon-card {
     display: grid;
     gap: 0.9rem;
+    align-content: start;
   }
 
   .sermon-card__thumb {
+    position: relative;
     aspect-ratio: 16 / 9;
     border-radius: var(--radius-sm);
+    overflow: hidden;
     display: grid;
     place-items: center;
     color: var(--white);
     background: radial-gradient(circle at 30% 20%, var(--blue-600), var(--navy-900));
   }
 
+  .sermon-card__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
   .sermon-card__thumb :global(svg) {
     width: 56px;
     height: 56px;
+  }
+
+  .sermon-card__series {
+    position: absolute;
+    left: 0.6rem;
+    bottom: 0.6rem;
+    max-width: calc(100% - 1.2rem);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: rgb(5 16 38 / 75%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sermon-card h3 {
+    margin: 0 0 0.3rem;
   }
 
   .sermon-card h3 a {
@@ -58,18 +88,25 @@ const d = sermon.data;
   }
 
   .sermon-card .card__meta {
-    margin-bottom: 0.4rem;
+    margin: 0 0 0.75rem;
   }
 
   .sermon-card__media {
     display: flex;
-    gap: 0.4rem;
-    margin: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* The Listen button sits above the card-wide link. */
+  .sermon-card__media :global(.listen) {
+    position: relative;
+    z-index: 1;
   }
 
   .sermon-card__media :global(svg) {
-    width: 0.9em;
-    height: 0.9em;
+    width: 1em;
+    height: 1em;
     vertical-align: -0.1em;
   }
 </style>

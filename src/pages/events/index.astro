@@ -42,26 +42,30 @@ const events = (await getCollection("events"))
 </Base>
 
 <script>
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
-  document.querySelectorAll<HTMLElement>("[data-event-wrap]").forEach((wrap) => {
-    const ends = wrap.querySelector<HTMLElement>("[data-event]")?.dataset.ends ?? "";
-    if (ends < today) wrap.remove();
-  });
+  import { onPage } from "../../scripts/page";
 
-  const filter = document.querySelector<HTMLSelectElement>("[data-filter]");
-  const none = document.querySelector<HTMLElement>("[data-none]");
-  const apply = () => {
-    const wraps = document.querySelectorAll<HTMLElement>("[data-event-wrap]");
-    let shown = 0;
-    wraps.forEach((w) => {
-      const ok = !filter?.value || w.dataset.branch === "" || w.dataset.branch === filter.value;
-      w.hidden = !ok;
-      if (ok) shown++;
+  onPage(() => {
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+    document.querySelectorAll<HTMLElement>("[data-event-wrap]").forEach((wrap) => {
+      const ends = wrap.querySelector<HTMLElement>("[data-event]")?.dataset.ends ?? "";
+      if (ends < today) wrap.remove();
     });
-    if (none) none.hidden = shown > 0;
-  };
-  filter?.addEventListener("change", apply);
-  apply();
+
+    const filter = document.querySelector<HTMLSelectElement>("[data-filter]");
+    const none = document.querySelector<HTMLElement>("[data-none]");
+    const apply = () => {
+      const wraps = document.querySelectorAll<HTMLElement>("[data-event-wrap]");
+      let shown = 0;
+      wraps.forEach((w) => {
+        const ok = !filter?.value || w.dataset.branch === "" || w.dataset.branch === filter.value;
+        w.hidden = !ok;
+        if (ok) shown++;
+      });
+      if (none) none.hidden = shown > 0;
+    };
+    filter?.addEventListener("change", apply);
+    apply();
+  });
 </script>
 
 <style>

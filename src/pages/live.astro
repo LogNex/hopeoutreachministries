@@ -56,15 +56,19 @@ const feed = fb
 </Base>
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-fb]").forEach((box) => {
-    box.querySelector("[data-load]")?.addEventListener("click", () => {
-      const frame = document.createElement("iframe");
-      frame.src = box.dataset.fb!;
-      frame.title = "Hope Outreach Ministries on Facebook";
-      frame.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
-      frame.allowFullscreen = true;
-      box.replaceChildren(frame);
-      box.classList.add("is-loaded");
+  import { onPage } from "../scripts/page";
+
+  onPage(() => {
+    document.querySelectorAll<HTMLElement>("[data-fb]").forEach((box) => {
+      box.querySelector("[data-load]")?.addEventListener("click", () => {
+        const frame = document.createElement("iframe");
+        frame.src = box.dataset.fb!;
+        frame.title = "Hope Outreach Ministries on Facebook";
+        frame.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share";
+        frame.allowFullscreen = true;
+        box.replaceChildren(frame);
+        box.classList.add("is-loaded");
+      });
     });
   });
 </script>

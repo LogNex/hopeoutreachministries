@@ -36,14 +36,18 @@ const source = videoSource(url);
 }
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-embed]").forEach((box) => {
-    box.querySelector("[data-play]")?.addEventListener("click", () => {
-      const frame = document.createElement("iframe");
-      frame.src = box.dataset.embed + (box.dataset.embed!.includes("?") ? "&" : "?") + "autoplay=1";
-      frame.title = box.dataset.title ?? "Video";
-      frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-      frame.allowFullscreen = true;
-      box.replaceChildren(frame);
+  import { onPage } from "../scripts/page";
+
+  onPage(() => {
+    document.querySelectorAll<HTMLElement>("[data-embed]").forEach((box) => {
+      box.querySelector("[data-play]")?.addEventListener("click", () => {
+        const frame = document.createElement("iframe");
+        frame.src = box.dataset.embed + (box.dataset.embed!.includes("?") ? "&" : "?") + "autoplay=1";
+        frame.title = box.dataset.title ?? "Video";
+        frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+        frame.allowFullscreen = true;
+        box.replaceChildren(frame);
+      });
     });
   });
 </script>

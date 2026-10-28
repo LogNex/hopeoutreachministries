@@ -185,9 +185,13 @@ const nearest = pinIsApproximate(branch);
 </Base>
 
 <script>
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
-  document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
-    if ((el.dataset.ends ?? "") < today) el.remove();
+  import { onPage } from "../../scripts/page";
+
+  onPage(() => {
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+    document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
+      if ((el.dataset.ends ?? "") < today) el.remove();
+    });
   });
 </script>
 
