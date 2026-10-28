@@ -562,7 +562,9 @@ html.motion-ok .rv-in.rv-in.rv-in {
    and only drifts up into place. Pure CSS, so it doesn't wait for any script. */
 @media (prefers-reduced-motion: no-preference) {
   [data-intro] > * {
-    animation: intro-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    /* "backwards", not "both": once finished, no transform is left behind, so menus that open
+       inside (Add to calendar) aren't trapped under the next block. */
+    animation: intro-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
 
   [data-intro] > :nth-child(2) { animation-delay: 0.05s; }

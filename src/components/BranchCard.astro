@@ -17,10 +17,14 @@ const place = branchPlace(branch);
 <article
   class="card card--link branch-card"
   data-branch-card
+  data-branch-id={branch.id}
   data-lat={d.latitude ?? ""}
   data-lng={d.longitude ?? ""}
 >
-  <p class="branch-card__distance" data-distance hidden></p>
+  <div class="branch-card__badges">
+    <p class="branch-card__mine" data-mine hidden><Icon name="star" /> Your branch</p>
+    <p class="branch-card__distance" data-distance hidden></p>
+  </div>
   <h3>
     <a href={`/branches/${branch.id}/`} class="branch-card__link">{d.town}</a>
   </h3>
@@ -105,6 +109,43 @@ const place = branchPlace(branch);
   .branch-card__more :global(svg) {
     width: 1em;
     height: 1em;
+  }
+
+  .branch-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .branch-card__badges:not(:has(> :not([hidden]))) {
+    display: none;
+  }
+
+  .branch-card__mine {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--navy-900);
+    background: var(--gold-500);
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  .branch-card__mine :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+
+  .branch-card__mine :global(svg path) {
+    fill: currentColor;
+  }
+
+  .branch-card.is-mine {
+    border-color: var(--gold-500);
+    box-shadow: 0 0 0 2px rgb(242 178 51 / 35%);
   }
 
   .branch-card__distance {

@@ -1,0 +1,292 @@
+---
+// Plan your visit: pick a branch, see when to come, how to get there and who to ask for,
+// add it to the calendar, and (optionally) tell the church you're coming.
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import Avatar from "../components/Avatar.astro";
+import ServiceTimes from "../components/ServiceTimes.astro";
+import AddToCalendar from "../components/AddToCalendar.astro";
+import MessageForm from "../components/MessageForm.astro";
+import Icon from "../components/Icon.astro";
+import { serviceItems } from "../lib/calendar";
+import {
+  branchName,
+  branchPlace,
+  getBranches,
+  getMinistries,
+  mapLink,
+  pinIsApproximate,
+  settings,
+  telLink,
+  whatsappLink,
+} from "../lib/site";
+
+const branches = await getBranches();
+const children = (await getMinistries()).find((m) => m.id === "children");
+---
+
+<Base
+  title="Plan your visit"
+  description={`When to come, how to get there and who to ask for at each branch of ${settings.siteName}.`}
+>
+  <PageHead
+    eyebrow="Karibu"
+    title="Plan your visit"
+    intro="We'd love to welcome you. Pick a branch to see when to come, how to get there and who to ask for."
+  />
+
+  <section class="section">
+    <div class="wrap visit">
+      <fieldset class="visit__pick" data-visit-pick hidden>
+        <legend>Which branch?</legend>
+        <div class="visit__chips">
+          {
+            branches.map((b) => (
+              <label class="chip">
+                <input type="radio" name="visit-branch" value={b.id} data-town={b.data.town} />
+                <span>{b.data.town}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      {
+        branches.map((b) => {
+          const d = b.data;
+          const directions = mapLink(b);
+          const wa = whatsappLink(d.whatsapp, `Hello ${branchName(b)}, I'm planning to visit. `);
+          const tel = telLink(d.phone);
+          return (
+            <article class="visit__panel" data-visit-panel={b.id} aria-labelledby={`visit-${b.id}`}>
+              <h2 id={`visit-${b.id}`} class="visit__title">{d.town}</h2>
+              <div class="visit__grid">
+                <div class="card">
+                  <p class="visit__step"><Icon name="clock" /> When to come</p>
+                  <ServiceTimes branch={b} />
+                  {d.services.length > 0 && (
+                    <AddToCalendar items={serviceItems(b)} ics={`/calendar/branches/${b.id}.ics`} />
+                  )}
+                </div>
+
+                <div class="card">
+                  <p class="visit__step"><Icon name="pin" /> How to get there</p>
+                  {branchPlace(b) && <p>{branchPlace(b)}</p>}
+                  {directions && (
+                    <a class="btn btn--gold" href={directions} target="_blank" rel="noopener">
+                      <Icon name="pin" /> Directions
+                    </a>
+                  )}
+                  {directions && pinIsApproximate(b) && (
+                    <p class="card__meta">Directions go to the nearest known location, not the exact spot. Ask a local or message us when you're close.</p>
+                  )}
+                </div>
+
+                <div class="card">
+                  <p class="visit__step"><Icon name="heart" /> Who to ask for</p>
+                  {d.pastor && (
+                    <div class="visit__pastor">
+                      <Avatar name={d.pastor} src={d.pastorPhoto} size={56} />
+                      <span>{d.pastor}</span>
+                    </div>
+                  )}
+                  <div class="btn-row">
+                    {wa && <a class="btn btn--blue" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> WhatsApp {d.town}</a>}
+                    {tel && <a class="btn btn--outline" href={tel}><Icon name="phone" /> Call</a>}
+                    {!wa && !tel && <a class="btn btn--outline" href={`/contact/?branch=${encodeURIComponent(d.town)}`}><Icon name="mail" /> Message {d.town}</a>}
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })
+      }
+
+      <ul class="visit__more">
+        <li><a href="/new-here/">What a service is like <Icon name="arrow" /></a></li>
+        {children && <li><a href={`/ministries/${children.id}/`}>Bringing children? <Icon name="arrow" /></a></li>}
+        <li><a href="/give/">How giving works <Icon name="arrow" /></a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--tint">
+    <div class="wrap visit__form">
+      <div class="section__head" data-reveal>
+        <span class="eyebrow">Optional</span>
+        <h2>Let us know you're coming</h2>
+        <p>So someone can look out for you. You don't need to tell us. Everyone is welcome.</p>
+      </div>
+      <MessageForm kind="visit" />
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { getMyBranch } from "../scripts/my-branch";
+
+  // Without JavaScript every branch is listed; with it, one at a time behind the chips.
+  const pick = document.querySelector<HTMLElement>("[data-visit-pick]");
+  const radios = [...document.querySelectorAll<HTMLInputElement>("input[name=visit-branch]")];
+  const panels = [...document.querySelectorAll<HTMLElement>("[data-visit-panel]")];
+  const formBranch = document.querySelector<HTMLSelectElement>("[data-kind=visit] select[name=branch]");
+
+  function choose(id: string, push: boolean) {
+    const radio = radios.find((r) => r.value === id) ?? radios[0];
+    if (!radio) return;
+    radio.checked = true;
+    panels.forEach((p) => (p.hidden = p.dataset.visitPanel !== radio.value));
+    if (formBranch) {
+      formBranch.value = radio.dataset.town ?? "";
+      formBranch.dispatchEvent(new Event("change"));
+    }
+    if (push) history.replaceState(null, "", `?branch=${radio.value}`);
+  }
+
+  if (pick && radios.length) {
+    pick.hidden = false;
+    document.querySelectorAll(".visit__title").forEach((h) => h.classList.add("visually-hidden"));
+    radios.forEach((r) => r.addEventListener("change", () => choose(r.value, true)));
+    choose(new URLSearchParams(location.search).get("branch") || getMyBranch(), false);
+  }
+</script>
+
+<style>
+  .visit {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .visit__pick {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .visit__pick legend {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--navy-800);
+    margin-bottom: 0.75rem;
+  }
+
+  .visit__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    position: relative;
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .chip span {
+    display: inline-block;
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: var(--white);
+    font-weight: 600;
+    color: var(--navy-800);
+  }
+
+  .chip input:checked + span {
+    background: var(--navy-800);
+    border-color: var(--navy-800);
+    color: var(--white);
+  }
+
+  .chip input:focus-visible + span {
+    outline: 3px solid var(--blue-500);
+    outline-offset: 2px;
+  }
+
+  .visit__panel {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .visit__title {
+    margin: 0;
+  }
+
+  .visit__grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 900px) {
+    .visit__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .visit__grid .card {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: start;
+  }
+
+  .visit__grid .card > p {
+    margin: 0;
+  }
+
+  .visit__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--blue-700);
+  }
+
+  .visit__step :global(svg) {
+    width: 1.2em;
+    height: 1.2em;
+  }
+
+  .visit__pastor {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    color: var(--navy-800);
+  }
+
+  .visit__more {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+  }
+
+  .visit__more a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+  }
+
+  .visit__more :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+
+  .visit__form {
+    max-width: 44rem;
+  }
+</style>

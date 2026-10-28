@@ -21,6 +21,7 @@ const branches = await getBranches();
       <div class="section__head" data-reveal>
         <h2>Plan your visit</h2>
         <p>Pick the branch nearest you for its service times and directions.</p>
+        <p><a class="btn btn--blue" href="/visit/">Plan your visit</a></p>
       </div>
       <BranchFinder>
         {branches.map((b) => <BranchCard branch={b} />)}

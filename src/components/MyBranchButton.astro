@@ -1,0 +1,72 @@
+---
+// Toggles "my branch" for this branch. Hidden until the script runs (it needs storage).
+import Icon from "./Icon.astro";
+
+interface Props {
+  id: string;
+  town: string;
+}
+const { id, town } = Astro.props;
+---
+
+<button class="my-branch" type="button" data-my-branch={id} aria-pressed="false" hidden>
+  <Icon name="star" />
+  <span data-label-off>Make {town} my branch</span>
+  <span data-label-on hidden>{town} is my branch</span>
+</button>
+
+<script>
+  import { EVENT, getMyBranch, setMyBranch } from "../scripts/my-branch";
+
+  document.querySelectorAll<HTMLButtonElement>("[data-my-branch]").forEach((button) => {
+    const id = button.dataset.myBranch!;
+    const sync = () => {
+      const mine = getMyBranch() === id;
+      button.setAttribute("aria-pressed", String(mine));
+      button.querySelector<HTMLElement>("[data-label-off]")!.hidden = mine;
+      button.querySelector<HTMLElement>("[data-label-on]")!.hidden = !mine;
+    };
+    button.addEventListener("click", () => setMyBranch(getMyBranch() === id ? "" : id));
+    document.addEventListener(EVENT, sync);
+    sync();
+    button.hidden = false;
+  });
+</script>
+
+<style>
+  .my-branch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 35%);
+    background: transparent;
+    color: var(--white);
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+  }
+
+  .my-branch:hover {
+    background: rgb(255 255 255 / 10%);
+  }
+
+  .my-branch :global(svg) {
+    width: 1.1em;
+    height: 1.1em;
+    fill: none;
+  }
+
+  .my-branch[aria-pressed="true"] {
+    background: var(--gold-500);
+    border-color: var(--gold-500);
+    color: var(--navy-900);
+  }
+
+  .my-branch[aria-pressed="true"] :global(svg path) {
+    fill: currentColor;
+  }
+</style>

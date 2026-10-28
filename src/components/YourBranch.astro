@@ -1,0 +1,211 @@
+---
+// Home page hero panel for a visitor who saved a branch ("My branch"): its next service, worded
+// for the moment (on now, starts in 40 min, today, tomorrow), with directions. Filled by an inline
+// script straight after the HTML, so it appears with the page instead of popping in later.
+// The storage key matches src/scripts/my-branch.ts.
+import Icon from "./Icon.astro";
+import { mapLink, pinIsApproximate, type Branch } from "../lib/site";
+
+interface Props {
+  branches: Branch[];
+}
+const { branches } = Astro.props;
+const data = Object.fromEntries(
+  branches.map((b) => [
+    b.id,
+    {
+      town: b.data.town,
+      pastor: b.data.pastor,
+      href: `/branches/${b.id}/`,
+      directions: mapLink(b),
+      approximate: pinIsApproximate(b),
+      services: b.data.services.map(({ day, time, name }) => ({ day, time, name })),
+    },
+  ]),
+);
+const KEY = "hom:my-branch";
+---
+
+<div class="yb" data-your-branch hidden>
+  <div class="yb__top">
+    <span class="yb__label"><Icon name="star" /> Your branch</span>
+    <a class="yb__change" href="#branches">Change</a>
+  </div>
+  <p class="yb__town" data-yb-town></p>
+  <p class="yb__pastor" data-yb-pastor></p>
+  <p class="yb__when"><span class="yb__dot" aria-hidden="true"></span><span data-yb-when aria-live="polite"></span></p>
+  <div class="btn-row">
+    <a class="btn btn--gold" data-yb-directions target="_blank" rel="noopener"><Icon name="pin" /> Directions</a>
+    <a class="btn btn--light" data-yb-details>Branch details</a>
+  </div>
+</div>
+
+<script is:inline define:vars={{ data, KEY }}>
+  const box = document.querySelector("[data-your-branch]");
+  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const EAT = 3 * 3600 * 1000;
+  const WINDOW = 2.5 * 3600 * 1000;
+  const fmt = (t) => {
+    const [h, m] = t.split(":").map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "pm" : "am"}`;
+  };
+  const saved = () => {
+    try {
+      return localStorage.getItem(KEY) || "";
+    } catch {
+      return "";
+    }
+  };
+
+  // The next service (or the one on now), in Nairobi time whatever the phone's own time zone.
+  function next(services) {
+    const now = Date.now();
+    const local = new Date(now + EAT);
+    let best = null;
+    for (const s of services) {
+      const [h, m] = s.time.split(":").map(Number);
+      for (const week of [-7, 0, 7]) {
+        const delta = ((DAYS.indexOf(s.day) - local.getUTCDay() + 7) % 7) + week;
+        const start = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + delta, h, m) - EAT;
+        if (start + WINDOW < now) continue;
+        if (!best || start < best.start) best = { s, start };
+      }
+    }
+    return best;
+  }
+
+  function sentence(services) {
+    const n = next(services);
+    if (!n) return { text: "Service times coming soon.", live: false };
+    const diff = n.start - Date.now();
+    const at = fmt(n.s.time);
+    const today = new Date(Date.now() + EAT).getUTCDate();
+    const day = new Date(n.start + EAT).getUTCDate();
+    const tomorrow = new Date(Date.now() + EAT + 864e5).getUTCDate();
+    if (diff <= 0) return { text: `${n.s.name} is on now`, live: true };
+    if (diff < 3 * 3600 * 1000) {
+      const mins = Math.round(diff / 60000);
+      const left = mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)} hr ${mins % 60} min`;
+      return { text: `${n.s.name} starts in ${left} (${at})`, live: false };
+    }
+    if (day === today) return { text: `${n.s.name} today at ${at}`, live: false };
+    if (day === tomorrow) return { text: `See you tomorrow, ${n.s.day} at ${at}`, live: false };
+    return { text: `Next service: ${n.s.day} at ${at}`, live: false };
+  }
+
+  function render() {
+    const b = data[saved()];
+    // A visitor with a saved branch gets this panel instead of the general countdown and the
+    // "find a branch" buttons.
+    box.hidden = !b;
+    document.querySelectorAll("[data-hero-next], [data-hero-ctas]").forEach((el) => (el.hidden = Boolean(b)));
+    if (!b) return;
+    box.querySelector("[data-yb-town]").textContent = b.town;
+    const pastor = box.querySelector("[data-yb-pastor]");
+    pastor.textContent = b.pastor;
+    pastor.hidden = !b.pastor;
+    const s = sentence(b.services);
+    box.querySelector("[data-yb-when]").textContent = s.text;
+    box.classList.toggle("is-live", s.live);
+    const dir = box.querySelector("[data-yb-directions]");
+    dir.hidden = !b.directions;
+    if (b.directions) dir.href = b.directions;
+    box.querySelector("[data-yb-details]").href = b.href;
+  }
+
+  // Greeting for the day: on Sunday the hero says so, in both languages.
+  const greet = document.querySelector("[data-greeting]");
+  if (greet && new Date(Date.now() + EAT).getUTCDay() === 0) greet.textContent = "Jumapili njema · Happy Sunday";
+
+  render();
+  setInterval(render, 60000);
+  document.addEventListener("mybranchchange", render);
+</script>
+
+<style>
+  .yb {
+    width: min(100%, 30rem);
+    padding: 1.1rem 1.2rem 1.2rem;
+    border-radius: var(--radius);
+    background: rgb(255 255 255 / 10%);
+    border: 1px solid rgb(255 255 255 / 18%);
+    backdrop-filter: blur(6px);
+  }
+
+  .yb__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .yb__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-500);
+  }
+
+  .yb__label :global(svg) {
+    width: 1em;
+    height: 1em;
+  }
+
+  .yb__label :global(svg path) {
+    fill: currentColor;
+  }
+
+  .yb__change {
+    color: var(--sky-200);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .yb__pastor {
+    margin: 0 0 0.35rem;
+    color: var(--sky-200);
+  }
+
+  .yb__town {
+    margin: 0.4rem 0 0.1rem;
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .yb__when {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 1rem;
+    color: var(--sky-200);
+    font-weight: 600;
+  }
+
+  .yb__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gold-500);
+    flex: none;
+  }
+
+  .yb.is-live .yb__dot {
+    background: #e5383b;
+    animation: yb-pulse 1.6s infinite;
+  }
+
+  @keyframes yb-pulse {
+    from {
+      box-shadow: 0 0 0 0 rgb(229 56 59 / 60%);
+    }
+    to {
+      box-shadow: 0 0 0 10px rgb(229 56 59 / 0%);
+    }
+  }
+</style>

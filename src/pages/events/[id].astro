@@ -3,6 +3,8 @@ import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import Icon from "../../components/Icon.astro";
+import AddToCalendar from "../../components/AddToCalendar.astro";
+import { eventItem } from "../../lib/calendar";
 import { findBranch, formatDate, formatTime, getBranches, mapLink, type ChurchEvent } from "../../lib/site";
 
 export async function getStaticPaths() {
@@ -21,13 +23,10 @@ const time = /^\d{1,2}:\d{2}$/.test(d.time) ? formatTime(d.time) : d.time;
 
 <Base title={d.title} description={d.summary || `${d.title} — ${when}`} image={d.image || undefined}>
   <PageHead eyebrow={branch ? `${branch.data.town} branch` : "All branches"} title={d.title} intro={[when, time].filter(Boolean).join(" · ")}>
-    {
-      d.registerLink && (
-        <div class="btn-row event-actions">
-          <a class="btn btn--gold" href={d.registerLink} target="_blank" rel="noopener">Register</a>
-        </div>
-      )
-    }
+    <div class="btn-row event-actions">
+      {d.registerLink && <a class="btn btn--gold" href={d.registerLink} target="_blank" rel="noopener">Register</a>}
+      <AddToCalendar items={[eventItem(event, branch)]} ics={`/calendar/events/${event.id}.ics`} variant="light" />
+    </div>
   </PageHead>
   <section class="section">
     <div class="wrap event" data-intro>

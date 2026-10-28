@@ -17,6 +17,8 @@ import Icon from "./Icon.astro";
 </div>
 
 <script>
+  import { EVENT, getMyBranch, setMyBranch } from "../scripts/my-branch";
+
   function km(lat1: number, lng1: number, lat2: number, lng2: number) {
     const r = (d: number) => (d * Math.PI) / 180;
     const a =
@@ -31,6 +33,19 @@ import Icon from "./Icon.astro";
     const list = finder.querySelector<HTMLElement>("[data-list]")!;
     const cards = [...list.querySelectorAll<HTMLElement>("[data-branch-card]")];
     const located = cards.filter((c) => c.dataset.lat && c.dataset.lng);
+
+    // The visitor's saved branch is marked and listed first.
+    const markMine = () => {
+      const mine = getMyBranch();
+      cards.forEach((card) => {
+        const is = card.dataset.branchId === mine;
+        card.classList.toggle("is-mine", is);
+        card.querySelector<HTMLElement>("[data-mine]")!.hidden = !is;
+        if (is) list.prepend(card);
+      });
+    };
+    markMine();
+    document.addEventListener(EVENT, markMine);
 
     if (!("geolocation" in navigator) || located.length === 0) {
       button.hidden = true;
@@ -57,7 +72,19 @@ import Icon from "./Icon.astro";
           withDistance.sort((a, b) => a.d - b.d).forEach(({ card }) => list.appendChild(card));
           const nearest = withDistance[0];
           const town = nearest.card.querySelector("h3")?.textContent?.trim();
+          const id = nearest.card.dataset.branchId ?? "";
           status.textContent = town ? `Your nearest branch is ${town}.` : "";
+          if (town && id && getMyBranch() !== id) {
+            const save = document.createElement("button");
+            save.type = "button";
+            save.className = "finder__save";
+            save.textContent = `Make ${town} my branch`;
+            save.addEventListener("click", () => {
+              setMyBranch(id);
+              status.textContent = `Saved. ${town} is now your branch on this phone.`;
+            });
+            status.append(" ", save);
+          }
           button.disabled = false;
         },
         () => {
@@ -85,5 +112,16 @@ import Icon from "./Icon.astro";
 
   .finder__status:empty {
     display: none;
+  }
+
+  .finder__status :global(.finder__save) {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--blue-600);
+    text-decoration: underline;
+    cursor: pointer;
   }
 </style>

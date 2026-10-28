@@ -5,7 +5,7 @@ import Icon from "./Icon.astro";
 import { getBranches, settings, telLink, whatsappLink } from "../lib/site";
 
 interface Props {
-  kind: "prayer" | "contact" | "ministry";
+  kind: "prayer" | "contact" | "ministry" | "visit";
   /** For kind="ministry": the ministry the message is for (Youth, Children, ...). */
   ministry?: string;
 }
@@ -17,7 +17,9 @@ const subject =
     ? "New prayer request"
     : kind === "ministry"
       ? `New message for the ${ministry} ministry`
-      : "New message from the website";
+      : kind === "visit"
+        ? "Someone is planning a visit"
+        : "New message from the website";
 const wa = whatsappLink(settings.whatsapp);
 ---
 
@@ -54,9 +56,26 @@ const wa = whatsappLink(settings.whatsapp);
         </select>
       </div>
 
+      {kind === "visit" && (
+        <div class="field">
+          <label for="visit-sunday">Which Sunday?</label>
+          <select class="input" id="visit-sunday" name="visit_sunday" data-sundays>
+            <option value="Not sure yet">Not sure yet</option>
+          </select>
+        </div>
+      )}
+
       <div class="field">
-        <label for={`${kind}-message`}>{kind === "prayer" ? "Your prayer request" : kind === "ministry" ? "Your question or message" : "Your message"}</label>
-        <textarea class="input" id={`${kind}-message`} name="message" required />
+        <label for={`${kind}-message`}>
+          {kind === "prayer"
+            ? "Your prayer request"
+            : kind === "ministry"
+              ? "Your question or message"
+              : kind === "visit"
+                ? <>Anything we should know? <span class="hint">(optional — for example, coming with children)</span></>
+                : "Your message"}
+        </label>
+        <textarea class="input" id={`${kind}-message`} name="message" required={kind !== "visit"} />
       </div>
 
       {kind === "prayer" && (
@@ -76,21 +95,33 @@ const wa = whatsappLink(settings.whatsapp);
       <label class="choice">
         <input type="checkbox" name="consent" value="yes" required />
         <span>
-          I agree that {settings.siteName} may use these details to {kind === "prayer" ? "pray for me and follow up" : "reply to me"}, as
+          I agree that {settings.siteName} may use these details to {kind === "prayer" ? "pray for me and follow up" : kind === "visit" ? "welcome me and contact me about my visit" : "reply to me"}, as
           described in the <a href="/privacy/">privacy notice</a>.
         </span>
       </label>
 
       <div>
         <button class="btn btn--blue" type="submit">
-          {kind === "prayer" ? "Send prayer request" : kind === "ministry" ? `Message the ${ministry} ministry` : "Send message"}
+          {kind === "prayer"
+            ? "Send prayer request"
+            : kind === "ministry"
+              ? `Message the ${ministry} ministry`
+              : kind === "visit"
+                ? "Let them know I'm coming"
+                : "Send message"}
         </button>
       </div>
       <p class="form-status" data-status role="status" hidden />
     </form>
   ) : (
     <div class="card">
-      <h3>{kind === "prayer" ? "Send us your prayer request" : kind === "ministry" ? `Join ${ministry}` : "Get in touch"}</h3>
+      <h3>{kind === "prayer"
+          ? "Send us your prayer request"
+          : kind === "ministry"
+            ? `Join ${ministry}`
+            : kind === "visit"
+              ? "Let us know you're coming"
+              : "Get in touch"}</h3>
       <p class="card__meta">Reach the church office directly:</p>
       <div class="btn-row">
         {wa && (
@@ -120,6 +151,26 @@ const wa = whatsappLink(settings.whatsapp);
     const branch = new URLSearchParams(location.search).get("branch");
     const select = form.querySelector<HTMLSelectElement>("select[name=branch]");
     if (branch && select && [...select.options].some((o) => o.value === branch)) select.value = branch;
+
+    // Visit form: the next four Sundays (Kenya time), and the branch in the email subject.
+    const sundays = form.querySelector<HTMLSelectElement>("[data-sundays]");
+    if (sundays) {
+      const eat = new Date(Date.now() + 3 * 3600 * 1000);
+      const first = (7 - eat.getUTCDay()) % 7;
+      for (let i = 0; i < 4; i++) {
+        const d = new Date(Date.UTC(eat.getUTCFullYear(), eat.getUTCMonth(), eat.getUTCDate() + first + 7 * i));
+        const label = new Intl.DateTimeFormat("en-KE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(d);
+        sundays.add(new Option(i === 0 && first === 0 ? `Today, ${label}` : label, label), i);
+      }
+      sundays.selectedIndex = 0;
+      const subject = form.querySelector<HTMLInputElement>("input[name=subject]")!;
+      const syncSubject = () => {
+        subject.value = select?.value ? `Someone is planning a visit to ${select.value}` : "Someone is planning a visit";
+      };
+      select?.addEventListener("change", syncSubject);
+      form.addEventListener("reset", () => setTimeout(syncSubject));
+      syncSubject();
+    }
 
     const status = form.querySelector<HTMLElement>("[data-status]")!;
     const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
@@ -151,7 +202,9 @@ const wa = whatsappLink(settings.whatsapp);
           "ok",
           form.dataset.kind === "prayer"
             ? "Thank you. Your request has reached the pastoral team, and we are praying with you."
-            : "Thank you — your message has been sent. We'll get back to you soon.",
+            : form.dataset.kind === "visit"
+              ? "Thank you! We'll let the branch know you're coming. Karibu sana."
+              : "Thank you — your message has been sent. We'll get back to you soon.",
         );
       } catch {
         show("error", "Sorry, that didn't send. Please check your connection and try again, or reach us on WhatsApp.");

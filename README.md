@@ -18,6 +18,8 @@ The church website: one church, six branches across Kenya.
 | Home | Welcome (English and Kiswahili), branch finder, next livestream, events, latest sermons, give and prayer |
 | Branches | All 6 branches, with "Find my nearest branch" (uses the phone's location; nothing is sent anywhere) and a map of every branch (OpenStreetMap, free; it loads only when scrolled to, or on tap with Data Saver on). When every branch keeps the same service times they are said once at the top instead of on each card |
 | Each branch | Service times with language, directions and map, call and WhatsApp, pastor and welcome note, that branch's Paybill, its events |
+| Plan your visit | Pick a branch (chips) to see when to come, directions, who to ask for, "Add to calendar" (Google Calendar or a calendar file), and an optional "Let us know you're coming" form with the next four Sundays. Branch pages link here |
+| My branch | A visitor can tap "Make this my branch" on a branch page (or after "Find my nearest branch"). It is remembered on that phone only. The home page then shows that branch's next service worded for the moment ("starts in 30 min", "on now", "see you tomorrow"), and branch lists put it first |
 | Give | The main church Paybill and every branch's Paybill, copy buttons, M-Pesa steps in English and Kiswahili |
 | Live | Next livestream countdown (Kenya time) and the church's Facebook page, loaded only on tap to save data. Until a Facebook or YouTube link is set in Church settings, "Live" is left out of the menu and footer, and the home page counts down to the next Sunday service instead |
 | Sermons | Facebook or YouTube video (loaded on tap), optional audio, notes, search and series filter |

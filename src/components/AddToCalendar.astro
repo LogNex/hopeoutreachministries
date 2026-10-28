@@ -1,0 +1,109 @@
+---
+// "Add to calendar" with a small menu: Google Calendar (most Android phones) or a calendar file
+// (iPhone, Outlook and the rest). Works without JavaScript; the script only closes it on outside taps.
+import Icon from "./Icon.astro";
+import { googleLink, type CalendarItem } from "../lib/calendar";
+
+interface Props {
+  items: CalendarItem[];
+  /** The .ics file for the same items. */
+  ics: string;
+  label?: string;
+  variant?: "light" | "outline";
+}
+const { items, ics, label = "Add to calendar", variant = "outline" } = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <details class="cal" data-cal>
+      <summary class:list={["btn", variant === "light" ? "btn--light" : "btn--outline"]}>
+        <Icon name="calendar" /> {label}
+      </summary>
+      <ul class="cal__menu">
+        {items.map((item) => (
+          <li>
+            <a href={googleLink(item)} target="_blank" rel="noopener">
+              Google Calendar{items.length > 1 && <span class="cal__hint"> · {item.title.split(" – ")[0]}</span>}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href={ics} download>
+            iPhone, Outlook or other <span class="cal__hint">(.ics file)</span>
+          </a>
+        </li>
+      </ul>
+    </details>
+  )
+}
+
+<script>
+  document.addEventListener("click", (e) => {
+    document.querySelectorAll<HTMLDetailsElement>("[data-cal][open]").forEach((d) => {
+      if (!d.contains(e.target as Node)) d.open = false;
+    });
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    document.querySelectorAll<HTMLDetailsElement>("[data-cal][open]").forEach((d) => {
+      d.open = false;
+      d.querySelector("summary")?.focus();
+    });
+  });
+</script>
+
+<style>
+  .cal {
+    position: relative;
+    display: inline-block;
+  }
+
+  .cal[open] {
+    z-index: 30;
+  }
+
+  .cal summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .cal summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cal__menu {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    min-width: 15rem;
+    margin: 0;
+    padding: 0.4rem;
+    list-style: none;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgb(10 27 61 / 18%);
+  }
+
+  .cal__menu a {
+    display: block;
+    padding: 0.65rem 0.8rem;
+    border-radius: 8px;
+    color: var(--navy-800);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cal__menu a:hover,
+  .cal__menu a:focus-visible {
+    background: var(--sky-100);
+  }
+
+  .cal__hint {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.9em;
+  }
+</style>

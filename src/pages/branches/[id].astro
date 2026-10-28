@@ -7,6 +7,9 @@ import ServiceTimes from "../../components/ServiceTimes.astro";
 import Paybill from "../../components/Paybill.astro";
 import EventCard from "../../components/EventCard.astro";
 import Icon from "../../components/Icon.astro";
+import AddToCalendar from "../../components/AddToCalendar.astro";
+import MyBranchButton from "../../components/MyBranchButton.astro";
+import { serviceItems } from "../../lib/calendar";
 import {
   branchIdFromRef,
   branchName,
@@ -67,6 +70,7 @@ const nearest = pinIsApproximate(branch);
         </p>
       )
     }
+    <MyBranchButton id={branch.id} town={d.town} />
   </PageHead>
 
   <section class="section">
@@ -77,6 +81,14 @@ const nearest = pinIsApproximate(branch);
         <div class="card">
           <h2>Service times</h2>
           <ServiceTimes branch={branch} />
+          {
+            d.services.length > 0 && (
+              <div class="btn-row service-actions">
+                <a class="btn btn--blue" href={`/visit/?branch=${branch.id}`}>Plan your visit</a>
+                <AddToCalendar items={serviceItems(branch)} ics={`/calendar/branches/${branch.id}.ics`} />
+              </div>
+            )
+          }
         </div>
 
         {
@@ -220,6 +232,10 @@ const nearest = pinIsApproximate(branch);
     .pastor {
       grid-template-columns: auto minmax(0, 1fr);
     }
+  }
+
+  .service-actions {
+    margin-top: 1.25rem;
   }
 
   .pin-note {
