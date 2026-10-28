@@ -25,7 +25,7 @@ const waBase = `https://wa.me/?text=${encodeURIComponent(d.title)}`;
   <PageHead eyebrow={ministry?.data.title ?? "Article"} title={d.title} intro={meta || undefined} />
 
   <section class="section">
-    <div class="wrap article" data-reveal="stagger">
+    <div class="wrap article" data-intro>
       {d.image && <img class="article__image" src={d.image} alt="" />}
       {d.summary && <p class="lead">{d.summary}</p>}
       <div class="prose"><Content /></div>

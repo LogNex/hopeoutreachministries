@@ -1,8 +1,9 @@
 ---
 import Icon from "./Icon.astro";
-import { settings } from "../lib/site";
+import { liveUrl, settings } from "../lib/site";
 
 // Desktop shows these in the bar (Home is the logo there); the phone menu lists everything in order.
+// "Live" waits until there is a stream link to open.
 const nav = [
   { href: "/", label: "Home", phoneOnly: true },
   { href: "/about/", label: "About" },
@@ -12,7 +13,7 @@ const nav = [
   { href: "/articles/", label: "Articles" },
   { href: "/events/", label: "Events" },
   { href: "/live/", label: "Live" },
-];
+].filter((item) => item.href !== "/live/" || liveUrl());
 // Desktop tucks these under "More" so the bar stays on one line; on a phone they are ordinary items.
 const more = [
   { href: "/new-here/", label: "New here?" },

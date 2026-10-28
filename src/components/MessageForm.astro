@@ -116,6 +116,11 @@ const wa = whatsappLink(settings.whatsapp);
 
 <script>
   document.querySelectorAll<HTMLFormElement>("[data-message-form]").forEach((form) => {
+    // "Message Kilakir" on a branch page links here with ?branch=Kilakir.
+    const branch = new URLSearchParams(location.search).get("branch");
+    const select = form.querySelector<HTMLSelectElement>("select[name=branch]");
+    if (branch && select && [...select.options].some((o) => o.value === branch)) select.value = branch;
+
     const status = form.querySelector<HTMLElement>("[data-status]")!;
     const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
     const show = (state: "ok" | "error", text: string) => {

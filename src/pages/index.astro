@@ -8,9 +8,22 @@ import SermonCard from "../components/SermonCard.astro";
 import ArticleCard from "../components/ArticleCard.astro";
 import NextService from "../components/NextService.astro";
 import Icon from "../components/Icon.astro";
-import { findBranch, findMinistry, getArticles, getBranches, getMinistries, isoDay, settings } from "../lib/site";
+import {
+  findBranch,
+  findMinistry,
+  getArticles,
+  getBranches,
+  getMinistries,
+  isoDay,
+  liveUrl,
+  servicesSummary,
+  settings,
+  sharedServices,
+} from "../lib/site";
 
 const branches = await getBranches();
+// When every branch keeps the same times, say them once instead of on all six cards.
+const shared = sharedServices(branches);
 const today = isoDay(new Date());
 const events = (await getCollection("events"))
   .filter((e) => isoDay(e.data.endDate ?? e.data.date) >= today)
@@ -23,15 +36,21 @@ const ministries = await getMinistries();
 
 <Base>
   <section class="hero">
-    <div class="wrap hero__inner" data-reveal="stagger">
+    <div class="wrap hero__inner" data-intro>
       <span class="eyebrow">Karibu · Welcome</span>
       <h1>{settings.siteName}</h1>
       <p class="hero__tag">{settings.tagline}</p>
       <div class="btn-row">
         <a class="btn btn--gold" href="#branches"><Icon name="pin" /> Find a branch near you</a>
-        <a class="btn btn--light" href="/live/"><Icon name="play" /> Watch live</a>
+        {
+          liveUrl() ? (
+            <a class="btn btn--light" href="/live/"><Icon name="play" /> Watch live</a>
+          ) : (
+            <a class="btn btn--light" href="/new-here/">New here? What to expect</a>
+          )
+        }
       </div>
-      <NextService dark />
+      <NextService dark fallback={shared} />
       <blockquote class="hero__verse">
         <p>“Now the God of hope fill you with all joy and peace in believing, that ye may abound in hope, through the power of the Holy Ghost.”</p>
         <cite>Romans 15:13</cite>
@@ -66,56 +85,60 @@ const ministries = await getMinistries();
       <div class="section__head" data-reveal>
         <span class="eyebrow">Our branches</span>
         <h2>{branches.length} branches, one family</h2>
-        <p>Choose your town for service times, directions and how to reach the pastor.</p>
+        {
+          shared.length > 0 ? (
+            <p class="shared-times">
+              <Icon name="clock" />
+              <span>Every branch meets {servicesSummary(shared)}.</span>
+            </p>
+          ) : (
+            <p>Choose your town for service times, directions and how to reach the pastor.</p>
+          )
+        }
+        <p class="more more--tight"><a href="/branches/#map">See all branches on a map <Icon name="arrow" /></a></p>
       </div>
       <BranchFinder>
-        {branches.map((b) => <BranchCard branch={b} />)}
+        {branches.map((b) => <BranchCard branch={b} showTimes={shared.length === 0} />)}
       </BranchFinder>
     </div>
   </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section__head" data-reveal>
-        <span class="eyebrow">Upcoming</span>
-        <h2>Events</h2>
-      </div>
-      {
-        events.length > 0 ? (
+  {/* Sections with nothing in them yet stay off the home page; their own pages say "coming soon". */}
+  {
+    events.length > 0 && (
+      <section class="section" data-events-section>
+        <div class="wrap">
+          <div class="section__head" data-reveal>
+            <span class="eyebrow">Upcoming</span>
+            <h2>Events</h2>
+          </div>
           <div class="grid grid--2" data-upcoming data-reveal="stagger">
             {events.map((e) => (
               <EventCard event={e} branchName={findBranch(branches, e.data.branch)?.data.town} />
             ))}
           </div>
-        ) : (
-          <p class="empty">No upcoming events yet — check back soon.</p>
-        )
-      }
-      <p class="more"><a href="/events/">All events <Icon name="arrow" /></a></p>
-    </div>
-  </section>
+          <p class="more"><a href="/events/">All events <Icon name="arrow" /></a></p>
+        </div>
+      </section>
+    )
+  }
 
-  <section class="section section--tint">
-    <div class="wrap">
-      <div class="section__head" data-reveal>
-        <span class="eyebrow">Messages</span>
-        <h2>Latest sermons</h2>
-      </div>
-      {
-        sermons.length > 0 ? (
+  {
+    sermons.length > 0 && (
+      <section class="section section--tint">
+        <div class="wrap">
+          <div class="section__head" data-reveal>
+            <span class="eyebrow">Messages</span>
+            <h2>Latest sermons</h2>
+          </div>
           <div class="grid grid--3" data-reveal="stagger">
             {sermons.map((s) => <SermonCard sermon={s} />)}
           </div>
-        ) : (
-          <p class="empty">
-            Sermons will appear here soon. Meanwhile, catch our services
-            {settings.facebookUrl ? <a href={settings.facebookUrl} target="_blank" rel="noopener">on Facebook</a> : "on Facebook"}.
-          </p>
-        )
-      }
-      <p class="more"><a href="/sermons/">All sermons <Icon name="arrow" /></a></p>
-    </div>
-  </section>
+          <p class="more"><a href="/sermons/">All sermons <Icon name="arrow" /></a></p>
+        </div>
+      </section>
+    )
+  }
 
   {
     articles.length > 0 && (
@@ -157,6 +180,10 @@ const ministries = await getMinistries();
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
   document.querySelectorAll<HTMLElement>("[data-upcoming] [data-event]").forEach((el) => {
     if ((el.dataset.ends ?? "") < today) el.remove();
+  });
+  // If every event has passed since the build, drop the whole section rather than show it empty.
+  document.querySelectorAll<HTMLElement>("[data-events-section]").forEach((section) => {
+    if (!section.querySelector("[data-event]")) section.remove();
   });
 </script>
 
@@ -257,6 +284,26 @@ const ministries = await getMinistries();
   .more :global(svg) {
     width: 1em;
     height: 1em;
+  }
+
+  .more--tight {
+    margin-top: 0.5rem;
+  }
+
+  .shared-times {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    font-weight: 600;
+    color: var(--navy-800);
+  }
+
+  .shared-times :global(svg) {
+    width: 1.2em;
+    height: 1.2em;
+    margin-top: 0.2em;
+    flex: none;
+    color: var(--blue-600);
   }
 
   .band {

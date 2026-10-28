@@ -174,6 +174,27 @@ export function videoSource(url: string): string {
   return "";
 }
 
+/** Where the services stream: Facebook first, then YouTube; "" until either is set. */
+export function liveUrl(): string {
+  return settings.facebookUrl || settings.youtubeUrl || "";
+}
+
+/** The services every branch shares, when they all have the same list; otherwise none. */
+export function sharedServices(branches: Branch[]): Branch["data"]["services"] {
+  const key = (b: Branch) =>
+    JSON.stringify(servicesByDay(b).flatMap(([, list]) => list.map((s) => [s.day, s.time, s.name, s.language])));
+  const first = branches[0];
+  if (!first || first.data.services.length === 0) return [];
+  return branches.every((b) => key(b) === key(first)) ? servicesByDay(first).flatMap(([, list]) => list) : [];
+}
+
+/** "Sundays at 9:30 am, in English & Kiswahili" — one phrase per service. */
+export function servicesSummary(services: Branch["data"]["services"]): string {
+  return services
+    .map((s) => `${s.day}s at ${formatTime(s.time)}${s.language ? `, in ${s.language}` : ""}`)
+    .join("; ");
+}
+
 /** Group a branch's services by day, in week order starting Sunday. */
 export function servicesByDay(branch: Branch) {
   const groups = new Map<string, Branch["data"]["services"]>();

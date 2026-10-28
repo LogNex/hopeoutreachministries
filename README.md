@@ -16,10 +16,10 @@ The church website: one church, six branches across Kenya.
 | Page | What it shows |
 |---|---|
 | Home | Welcome (English and Kiswahili), branch finder, next livestream, events, latest sermons, give and prayer |
-| Branches | All 6 branches, with "Find my nearest branch" (uses the phone's location; nothing is sent anywhere) |
+| Branches | All 6 branches, with "Find my nearest branch" (uses the phone's location; nothing is sent anywhere) and a map of every branch (OpenStreetMap, free; it loads only when scrolled to, or on tap with Data Saver on). When every branch keeps the same service times they are said once at the top instead of on each card |
 | Each branch | Service times with language, directions and map, call and WhatsApp, pastor and welcome note, that branch's Paybill, its events |
 | Give | The main church Paybill and every branch's Paybill, copy buttons, M-Pesa steps in English and Kiswahili |
-| Live | Next livestream countdown (Kenya time) and the church's Facebook page, loaded only on tap to save data |
+| Live | Next livestream countdown (Kenya time) and the church's Facebook page, loaded only on tap to save data. Until a Facebook or YouTube link is set in Church settings, "Live" is left out of the menu and footer, and the home page counts down to the next Sunday service instead |
 | Sermons | Facebook or YouTube video (loaded on tap), optional audio, notes, search and series filter |
 | Events | Upcoming events with a branch filter; past events disappear on their own |
 | Ministries | Exactly three: Youth, Children, Mission Outreaches. Each has its own page with who leads it, when it meets, and a "Join" form that emails the church office (the ministry's name is in the subject) |
@@ -117,5 +117,5 @@ npm run build    # outputs dist/
 
 - M-Pesa STK Push ("enter your number, get the PIN prompt"): needs Safaricom Daraja go-live approval for each Paybill and a small server function.
 - A full Kiswahili version of the site.
-- Ministries pages, testimonies, photo gallery.
+- Testimonies, photo gallery.
 - Streaming to YouTube as well as Facebook, for a searchable sermon archive.

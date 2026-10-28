@@ -1,0 +1,154 @@
+---
+// All branches on one map (Leaflet + OpenStreetMap, both free). The map code and tiles load only
+// when the map scrolls near the screen; on Data Saver they wait for a tap.
+import Icon from "./Icon.astro";
+import { mapLink, pinIsApproximate, type Branch } from "../lib/site";
+
+interface Props {
+  branches: Branch[];
+}
+const { branches } = Astro.props;
+const pins = branches
+  .filter((b) => b.data.latitude != null && b.data.longitude != null)
+  .map((b) => ({
+    town: b.data.town,
+    pastor: b.data.pastor,
+    lat: b.data.latitude,
+    lng: b.data.longitude,
+    href: `/branches/${b.id}/`,
+    directions: mapLink(b),
+    approximate: pinIsApproximate(b),
+  }));
+---
+
+{
+  pins.length > 0 && (
+    <div class="branch-map" id="map" data-branch-map={JSON.stringify(pins)}>
+      <div class="branch-map__wait">
+        <Icon name="pin" />
+        <button class="btn btn--gold" type="button" data-map-load>Show the map</button>
+        <p>Loads a small map from OpenStreetMap.</p>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  type Pin = {
+    town: string;
+    pastor: string;
+    lat: number;
+    lng: number;
+    href: string;
+    directions: string;
+    approximate: boolean;
+  };
+
+  const esc = (s: string) =>
+    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+  async function show(box: HTMLElement) {
+    if (box.classList.contains("is-loaded")) return;
+    box.classList.add("is-loaded");
+    const pins = JSON.parse(box.dataset.branchMap ?? "[]") as Pin[];
+    const [{ default: L }] = await Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")]);
+    box.replaceChildren();
+    const touch = matchMedia("(pointer: coarse)").matches;
+    const map = L.map(box, {
+      scrollWheelZoom: false, // the page keeps scrolling past the map
+      dragging: !touch, // one finger scrolls the page on a phone; two fingers zoom the map
+    });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+    const icon = L.divIcon({ className: "branch-pin", html: "<span></span>", iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26] });
+    const markers = pins.map((p) =>
+      L.marker([p.lat, p.lng], { icon, title: p.town, alt: p.town })
+        .bindPopup(
+          `<strong>${esc(p.town)}</strong>` +
+            (p.pastor ? `<br>${esc(p.pastor)}` : "") +
+            (p.approximate ? `<br><small>Pin shows the nearest known location.</small>` : "") +
+            `<br><a href="${esc(p.href)}">Branch details</a>` +
+            (p.directions ? ` · <a href="${esc(p.directions)}" target="_blank" rel="noopener">Directions</a>` : ""),
+        )
+        .addTo(map),
+    );
+    map.fitBounds(L.featureGroup(markers).getBounds(), { padding: [40, 40], maxZoom: 12 });
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-branch-map]").forEach((box) => {
+    box.querySelector("[data-map-load]")?.addEventListener("click", () => show(box));
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    if (saveData || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          show(box);
+        }
+      },
+      { rootMargin: "300px 0px" },
+    );
+    io.observe(box);
+  });
+</script>
+
+<style>
+  .branch-map {
+    position: relative;
+    height: clamp(320px, 55vw, 460px);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--navy-800);
+    border: 1px solid var(--line);
+    z-index: 0; /* keep Leaflet's panes under the fixed header */
+    scroll-margin-top: calc(var(--top-h) + 1rem);
+  }
+
+  .branch-map.is-loaded {
+    background: var(--sky-100);
+  }
+
+  .branch-map__wait {
+    height: 100%;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+    color: var(--sky-200);
+  }
+
+  .branch-map__wait p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .branch-map__wait :global(svg) {
+    width: 36px;
+    height: 36px;
+    color: var(--gold-500);
+  }
+
+  .branch-map :global(.leaflet-container) {
+    font: inherit;
+  }
+
+  .branch-map :global(.leaflet-popup-content) {
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  .branch-map :global(.branch-pin span) {
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: var(--gold-500);
+    border: 3px solid var(--navy-800);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+  }
+</style>

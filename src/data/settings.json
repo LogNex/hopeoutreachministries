@@ -15,7 +15,7 @@
     { "label": "Tithes, offerings and gifts", "account": "0670 000 4229" }
   ],
   "liveServices": [
-    { "day": "Sunday", "time": "10:00", "name": "Sunday Service" }
+    { "day": "Sunday", "time": "09:30", "name": "Sunday Service" }
   ],
   "formAccessKey": "5a94e6e2-4313-4ebb-ad51-ed5a8c81a159"
 }

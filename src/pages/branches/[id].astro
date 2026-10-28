@@ -71,7 +71,7 @@ const nearest = pinIsApproximate(branch);
 
   <section class="section">
     <div class="wrap branch-layout">
-      <div class="branch-main" data-reveal="stagger">
+      <div class="branch-main" data-intro>
         {d.photo && <img class="branch-photo" src={d.photo} alt={`The congregation at ${branchName(branch)}`} loading="lazy" />}
 
         <div class="card">
@@ -116,7 +116,7 @@ const nearest = pinIsApproximate(branch);
         </div>
       </div>
 
-      <aside class="branch-side" data-reveal="stagger">
+      <aside class="branch-side" data-intro>
         {
           embed && (
             <figure class="map-wrap">
@@ -141,7 +141,16 @@ const nearest = pinIsApproximate(branch);
             {d.email && <li><Icon name="mail" /><a href={`mailto:${d.email}`}>{d.email}</a></li>}
             {d.address && <li><Icon name="pin" /><span>{d.address}</span></li>}
           </ul>
-          {!d.phone && !d.whatsapp && !d.email && <p class="card__meta">Contact details coming soon. You can also <a href="/contact/">message the church office</a>.</p>}
+          {
+            !d.phone && !d.whatsapp && !d.email && (
+              <>
+                <p class="card__meta">Send a message and the church office will make sure it reaches {d.town}.</p>
+                <a class="btn btn--blue" href={`/contact/?branch=${encodeURIComponent(d.town)}`}>
+                  <Icon name="mail" /> Message {d.town}
+                </a>
+              </>
+            )
+          }
         </div>
 
         <Paybill

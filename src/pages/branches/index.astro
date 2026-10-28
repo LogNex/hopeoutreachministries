@@ -3,22 +3,34 @@ import Base from "../../layouts/Base.astro";
 import PageHead from "../../components/PageHead.astro";
 import BranchCard from "../../components/BranchCard.astro";
 import BranchFinder from "../../components/BranchFinder.astro";
-import { getBranches, settings } from "../../lib/site";
+import BranchMap from "../../components/BranchMap.astro";
+import { getBranches, servicesSummary, settings, sharedServices } from "../../lib/site";
 
 const branches = await getBranches();
+const shared = sharedServices(branches);
 ---
 
 <Base title="Our branches" description={`Service times and directions for all ${branches.length} branches of ${settings.siteName}.`}>
   <PageHead
     eyebrow="Find us"
     title="Our branches"
-    intro={`${settings.siteName} meets in ${branches.length} towns across Kenya. Find the one nearest you.`}
+    intro={`${settings.siteName} meets in ${branches.length} towns across Kenya.${shared.length > 0 ? ` Every branch meets ${servicesSummary(shared)}.` : " Find the one nearest you."}`}
   />
   <section class="section">
     <div class="wrap">
       <BranchFinder>
-        {branches.map((b) => <BranchCard branch={b} />)}
+        {branches.map((b) => <BranchCard branch={b} showTimes={shared.length === 0} />)}
       </BranchFinder>
+    </div>
+  </section>
+  <section class="section section--tint">
+    <div class="wrap">
+      <div class="section__head" data-reveal>
+        <span class="eyebrow">On the map</span>
+        <h2>Where we meet</h2>
+        <p>Tap a pin for the branch, its pastor and directions.</p>
+      </div>
+      <BranchMap branches={branches} />
     </div>
   </section>
 </Base>

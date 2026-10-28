@@ -6,8 +6,10 @@ import { branchPlace, type Branch } from "../lib/site";
 
 interface Props {
   branch: Branch;
+  /** Off when the page already says the times every branch shares. */
+  showTimes?: boolean;
 }
-const { branch } = Astro.props;
+const { branch, showTimes = true } = Astro.props;
 const d = branch.data;
 const place = branchPlace(branch);
 ---
@@ -38,7 +40,7 @@ const place = branchPlace(branch);
       </div>
     )
   }
-  <ServiceTimes branch={branch} compact />
+  {showTimes && <ServiceTimes branch={branch} compact />}
   <span class="branch-card__more">Branch details <Icon name="arrow" /></span>
 </article>
 

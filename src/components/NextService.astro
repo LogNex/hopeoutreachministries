@@ -1,22 +1,30 @@
 ---
 // Shows the next livestreamed service, worked out in the visitor's browser in Nairobi time
-// (so it stays right between site rebuilds).
-import { DAYS, formatTime, settings } from "../lib/site";
+// (so it stays right between site rebuilds). Until a livestream link is set, it shows the next
+// Sunday service from `fallback` instead, so it never promises a stream nobody can open.
+import { DAYS, formatTime, liveUrl, settings, type Branch } from "../lib/site";
 
 interface Props {
   dark?: boolean;
+  fallback?: Branch["data"]["services"];
 }
-const { dark = false } = Astro.props;
-const services = settings.liveServices.filter((s) => DAYS.includes(s.day) && /^\d{1,2}:\d{2}$/.test(s.time));
+const { dark = false, fallback = [] } = Astro.props;
+const live = Boolean(liveUrl());
+const valid = (s: { day: string; time: string }) => DAYS.includes(s.day) && /^\d{1,2}:\d{2}$/.test(s.time);
+const services = (live ? settings.liveServices : fallback).filter(valid).map(({ day, time, name }) => ({ day, time, name }));
 const first = services[0];
 ---
 
 {
   services.length > 0 && (
-    <div class:list={["next", { "next--dark": dark }]} data-next-service={JSON.stringify(services)}>
+    <div
+      class:list={["next", { "next--dark": dark }]}
+      data-next-service={JSON.stringify(services)}
+      data-mode={live ? "live" : "service"}
+    >
       <span class="next__dot" aria-hidden="true" />
       <p class="next__text" aria-live="polite">
-        Live every {first.day} at {formatTime(first.time)} on Facebook
+        {live ? `Live every ${first.day} at ${formatTime(first.time)}` : `Every ${first.day} at ${formatTime(first.time)}`}
       </p>
     </div>
   )
@@ -26,7 +34,7 @@ const first = services[0];
   type Service = { day: string; time: string; name: string };
   const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const NAIROBI_OFFSET = 3 * 60 * 60 * 1000; // EAT is UTC+3 all year
-  const LIVE_WINDOW = 2.5 * 60 * 60 * 1000;
+  const WINDOW = 2.5 * 60 * 60 * 1000;
 
   function fmt(time: string) {
     const [h, m] = time.split(":").map(Number);
@@ -44,7 +52,7 @@ const first = services[0];
         const delta = ((day - local.getUTCDay() + 7) % 7) + weekOffset;
         const start =
           Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() + delta, h, m) - NAIROBI_OFFSET;
-        if (start + LIVE_WINDOW < nowUtc) continue;
+        if (start + WINDOW < nowUtc) continue;
         if (!best || start < best.start) best = { s, start };
       }
     }
@@ -62,16 +70,17 @@ const first = services[0];
 
   function render(box: HTMLElement) {
     const services = JSON.parse(box.dataset.nextService ?? "[]") as Service[];
+    const live = box.dataset.mode === "live";
     const n = next(services);
     const text = box.querySelector(".next__text");
     if (!n || !text) return;
     const diff = n.start - Date.now();
     if (diff <= 0) {
       box.classList.add("is-live");
-      text.textContent = `Live now: ${n.s.name}`;
+      text.textContent = live ? `Live now: ${n.s.name}` : `${n.s.name} is on now`;
     } else {
       box.classList.remove("is-live");
-      text.textContent = `Next live: ${n.s.name}, ${n.s.day} ${fmt(n.s.time)} (${until(diff)})`;
+      text.textContent = `${live ? "Next live" : "Next service"}: ${n.s.day} ${fmt(n.s.time)} (${until(diff)})`;
     }
   }
 

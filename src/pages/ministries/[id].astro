@@ -27,7 +27,7 @@ const hasDetails = Boolean(d.meets || d.leader || d.phone || d.whatsapp);
   <PageHead eyebrow="Ministries" title={d.title} intro={d.summary || undefined} />
 
   <section class="section">
-    <div class="wrap ministry" data-reveal="stagger">
+    <div class="wrap ministry" data-intro>
       <div class="ministry__main">
         {d.photo && <img class="ministry__photo" src={d.photo} alt="" loading="lazy" />}
         {

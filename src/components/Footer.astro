@@ -1,6 +1,6 @@
 ---
 import Icon from "./Icon.astro";
-import { getBranches, settings, telLink, whatsappLink } from "../lib/site";
+import { getBranches, liveUrl, settings, telLink, whatsappLink } from "../lib/site";
 
 const branches = await getBranches();
 const year = new Date().getFullYear();
@@ -53,7 +53,7 @@ const year = new Date().getFullYear();
       <p class="site-footer__h">Quick links</p>
       <ul>
         <li><a href="/new-here/">New here?</a></li>
-        <li><a href="/live/">Watch live</a></li>
+        {liveUrl() && <li><a href="/live/">Watch live</a></li>}
         <li><a href="/ministries/">Ministries</a></li>
         <li><a href="/sermons/">Sermons</a></li>
         <li><a href="/articles/">Articles</a></li>
