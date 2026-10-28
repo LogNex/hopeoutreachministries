@@ -40,6 +40,9 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
     <link rel="preload" as="font" type="font/woff2" href={outfitFont} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={montserratFont} crossorigin />
     <meta name="theme-color" content="#0b2545" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Hope Outreach" />
     <!--
       Pages change without a full reload: a short cross-fade (none for reduced motion), and the
       sermon player below keeps playing. Scripts set pages up with onPage() (src/scripts/page.ts).
@@ -82,9 +85,17 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
         </a>
       )
     }
+    <div class="install-banner" data-install-banner hidden>
+      <p><strong>Get the app.</strong> Service times, directions and giving, even with no signal.</p>
+      <div class="install-banner__actions">
+        <button class="btn btn--gold btn--small" type="button" data-install>Install</button>
+        <button class="install-banner__close" type="button" data-install-dismiss aria-label="Not now">Not now</button>
+      </div>
+    </div>
     <AudioDock />
     <script>
       import "../scripts/motion";
+      import "../scripts/app";
     </script>
   </body>
 </html>
@@ -98,6 +109,53 @@ const wa = whatsappLink(settings.whatsapp, "Hello Hope Outreach Ministries, ");
 
   main {
     flex: 1;
+  }
+
+  .install-banner {
+    position: fixed;
+    z-index: 55;
+    left: 50%;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(calc(100% - 1.5rem), 34rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    background: var(--white);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow: 0 16px 40px rgb(5 16 38 / 25%);
+  }
+
+  .install-banner p {
+    margin: 0;
+    flex: 1 1 14rem;
+    font-size: 0.95rem;
+  }
+
+  .install-banner__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .install-banner__close {
+    border: 0;
+    background: none;
+    padding: 0.6rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  /* Above the sermon player when both are showing. */
+  :global(body:has([data-dock]:not([hidden]))) .install-banner {
+    bottom: 7.5rem;
   }
 
   /* Room for the sermon player so it never covers the footer or the WhatsApp button. */

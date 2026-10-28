@@ -1,0 +1,105 @@
+---
+// How to put the church on your home screen, with the install button where the browser allows it.
+import Base from "../layouts/Base.astro";
+import PageHead from "../components/PageHead.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<Base title="Get the app" description="Put Hope Outreach Ministries on your home screen: service times, directions and giving, even with no signal.">
+  <PageHead eyebrow="On your phone" title="Get the app" intro="Put the church on your home screen. It opens like an app, and service times, directions and giving still work when there's no signal." />
+  <section class="section">
+    <div class="wrap get-app">
+      <p class="get-app__done card" data-installed hidden><Icon name="star" /> You're already using the app. Karibu!</p>
+
+      <div class="card get-app__now" data-install-card hidden>
+        <h2>Install in one tap</h2>
+        <p>It's free, takes almost no space and doesn't need the Play Store.</p>
+        <button class="btn btn--gold" type="button" data-install>Install the app</button>
+      </div>
+
+      <div class="get-app__steps">
+        <div class="card">
+          <h2>Android (Chrome)</h2>
+          <ol>
+            <li>Open this site in <strong>Chrome</strong>.</li>
+            <li>Tap the <strong>⋮</strong> menu at the top right.</li>
+            <li>Tap <strong>Add to Home screen</strong> or <strong>Install app</strong>.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h2>iPhone (Safari)</h2>
+          <ol>
+            <li>Open this site in <strong>Safari</strong>.</li>
+            <li>Tap the <strong>Share</strong> button (the square with an arrow).</li>
+            <li>Tap <strong>Add to Home Screen</strong>, then <strong>Add</strong>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>What works with no signal</h2>
+        <ul>
+          <li>Service times and directions for every branch</li>
+          <li>The M-Pesa Paybill and account numbers on the Give page</li>
+          <li>Plan your visit, New here? and any page you've opened before</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { isInstalled } from "../scripts/app";
+  import { onPage } from "../scripts/page";
+
+  onPage(() => {
+    const done = document.querySelector<HTMLElement>("[data-installed]");
+    if (done) done.hidden = !isInstalled();
+  });
+</script>
+
+<style>
+  .get-app {
+    display: grid;
+    gap: 1rem;
+    max-width: 52rem;
+  }
+
+  .get-app__steps {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 760px) {
+    .get-app__steps {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .get-app h2 {
+    font-size: 1.25rem;
+  }
+
+  .get-app ol,
+  .get-app ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .get-app__done {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: var(--navy-800);
+    margin: 0;
+  }
+
+  .get-app__done :global(svg) {
+    width: 1.2em;
+    height: 1.2em;
+    color: var(--gold-500);
+  }
+</style>

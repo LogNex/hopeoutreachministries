@@ -11,3 +11,10 @@
 # "Add to calendar" files.
 /calendar/*
   Content-Type: text/calendar; charset=utf-8
+
+# The app's service worker must always be checked for a newer version.
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json
