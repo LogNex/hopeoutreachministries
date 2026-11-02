@@ -1,21 +1,19 @@
 {
   "siteName": "Hope Outreach Ministries",
-  "tagline": "One church, six branches, one hope in Christ.",
-  "logo": "",
-  "announcement": "",
-  "announcementLink": "",
-  "phone": "",
-  "whatsapp": "",
-  "email": "",
-  "headOffice": "",
-  "facebookUrl": "",
-  "youtubeUrl": "",
+  "tagline": "In Christ Alone",
   "centralPaybill": "222 111",
   "centralAccounts": [
-    { "label": "Tithes, offerings and gifts", "account": "0670 000 4229" }
+    {
+      "label": "Tithes, offerings and gifts",
+      "account": "0670 000 4229"
+    }
   ],
   "liveServices": [
-    { "day": "Sunday", "time": "09:30", "name": "Sunday Service" }
+    {
+      "day": "Sunday",
+      "time": "09:30",
+      "name": "Sunday Service"
+    }
   ],
   "formAccessKey": "5a94e6e2-4313-4ebb-ad51-ed5a8c81a159"
 }
