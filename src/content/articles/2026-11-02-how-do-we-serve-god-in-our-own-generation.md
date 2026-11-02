@@ -8,7 +8,7 @@ image: /images/uploads/cute work desk setup with Bibles, concordances and a
   lexicon as well as spiritual books and writing materials and a white board in
   the same room.jpg
 summary: How Do We Serve God In Our Own Generation?
-draft: false
+draft: true
 ---
 ## **Perform the common duties of life**
 
