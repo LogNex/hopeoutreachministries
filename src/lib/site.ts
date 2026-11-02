@@ -90,7 +90,17 @@ export function isoDay(date: Date): string {
 }
 
 /** Kenyan numbers in any common shape → 2547XXXXXXXX (for tel: and wa.me links). */
+// export function intlPhone(phone: string): string {
+//   const digits = phone.replace(/\D/g, "");
+//   if (!digits) return "";
+//   if (digits.startsWith("254")) return digits;
+//   if (digits.startsWith("0")) return `254${digits.slice(1)}`;
+//   if (digits.length === 9) return `254${digits}`;
+//   return digits;
+// }
+
 export function intlPhone(phone: string): string {
+  if (!phone) return "";
   const digits = phone.replace(/\D/g, "");
   if (!digits) return "";
   if (digits.startsWith("254")) return digits;
@@ -98,6 +108,7 @@ export function intlPhone(phone: string): string {
   if (digits.length === 9) return `254${digits}`;
   return digits;
 }
+
 
 export function telLink(phone: string): string {
   const n = intlPhone(phone);
