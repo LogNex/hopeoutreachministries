@@ -2,6 +2,7 @@
 title: God's Prunning
 date: 2026-11-02
 author: Lekeni, from CH Spurgeon
+image: /images/uploads/flower beauty flower beauty quotes flower beauty….jpeg
 draft: false
 ---
 By the summer of 1856, C. H. Spurgeon’s ministry was bearing so much fruit. Church membership was growing. People were being converted under his preaching. Young men were being trained for the ministry. Sermons were being sold by the thousands. And yet all would seemingly come to an end in the Surrey Gardens Music Hall Disaster. On the night of October 19, 1856, with the hall filled to capacity with 10,000 people, shouts of “Fire!” resulted in a stampede, and in the end, seven people died and many more were injured. As a result, Spurgeon fell into a deep depression and no one knew if he would ever preach again.
