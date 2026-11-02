@@ -3,7 +3,10 @@ title: How To Serve God In Our Generation
 date: 2026-11-02
 author: Lekeni, from CH Spurgeon
 ministry: src/content/ministries/youth.md
-image: /images/uploads/WHILE MEN SLEPT.jpg
+image: /images/uploads/cute work desk setup with Bibles, concordances and a
+  lexicon as well as spiritual books and writing materials and a white board in
+  the same room.jpg
+summary: "For Youths "
 draft: false
 ---
 The years after the Downgrade Controversy were difficult for Spurgeon. His mother passed away in May of 1888. Spurgeon gave the funeral address. The controversy took a physical and emotional toll on him, and he found himself seriously ill, and sometimes bedridden, for months. His deacons urged him to restrict his outside speaking engagements so that he might rest. 1890 experienced unusually cold weather, making recovery difficult. In October 1890, another blow came. Deacon William Olney went home to be with the Lord. The Olney family had been instrumental in bringing Spurgeon to the New Park Street Chapel, and William Olney had served alongside him for over three decades. In Spurgeon’s ministry, in trials, in sickness, Olney had been a constant source of support and comfort. Now, amid dark days, Spurgeon found himself without his “right hand man.”
