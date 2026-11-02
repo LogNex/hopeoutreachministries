@@ -6,6 +6,7 @@ time: Crossover
 branch: src/content/branches/osiligi-restoration-centre.md
 venue: Osiligi Restoration Center - Killoh
 image: /images/uploads/CROSSOVER KESHA.jpg
+registerLink: FREE
 summary: New Year's First Night Service
 ---
 Cross over midnight kesha
