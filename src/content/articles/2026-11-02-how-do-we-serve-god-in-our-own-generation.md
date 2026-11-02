@@ -1,7 +1,7 @@
 ---
 title: How Do We Serve God In Our Own Generation?
 date: 2026-11-02
-author: Lekeni, Cited from CH Spurgeon
+author: Lekeni, from CH Spurgeon
 ministry: src/content/ministries/youth.md
 branch: src/content/branches/osiligi-restoration-centre.md
 image: /images/uploads/cute work desk setup with Bibles, concordances and a
