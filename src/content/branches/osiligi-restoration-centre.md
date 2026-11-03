@@ -3,7 +3,7 @@ town: "Osiligi Restoration Centre"
 order: 6
 subCounty: "Mashuuru"
 county: "Kajiado"
-address: "Kilo, Imaroro Word, Kajiado, Kenya"
+address: ""
 maplink: "https://maps.app.goo.gl/616FTmhMQ9PD2WsW8"
 latitude: -1.97
 longitude: 37.17
