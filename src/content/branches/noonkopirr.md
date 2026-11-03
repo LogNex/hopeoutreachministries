@@ -7,4 +7,9 @@ address: Near Noonkopirr Township Primary School
 mapLink: https://maps.app.goo.gl/PqE5kFfc65TpJQXF7
 exactPin: false
 pastor: Pastor Kathenya
+services:
+  - day: Sunday
+    time: 09:30
+    name: Sunday Service
+    language: English & Kiswahili
 ---
