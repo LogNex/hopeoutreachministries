@@ -5,6 +5,5 @@ endDate: 2027-01-01
 time: Crossover
 image: /images/uploads/CROSSOVER KESHA.jpg
 registerLink: FREE
-summary: New Year's First Night Service
 ---
 Cross over midnight kesha
