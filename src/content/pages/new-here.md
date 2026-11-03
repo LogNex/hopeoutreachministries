@@ -1,9 +1,8 @@
 ---
 title: New here?
-intro: Karibu! Whether it's your first Sunday or your first time in church, this is home.
-leaders: []
+intro: Karibu! Whether it's your first Sunday or your first time in church, this
+  is home.
 ---
-
 ## What to expect
 
 Prayers
@@ -16,10 +15,8 @@ A power packed word session
 
 Refreshing and restoration
 
-
 ## Children and youth
 
-<!-- *What happens for children during the service, and where parents take them.* -->
 Children (5-12 years)
 
 Youths (students and young adults)
@@ -35,7 +32,5 @@ See your branch's page for its times.
 Interaction with the pastor.
 
 First timer's special session.
-
-Membership class.
 
 Photo sessions.
