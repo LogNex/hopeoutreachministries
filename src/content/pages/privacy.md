@@ -4,7 +4,7 @@ intro: How Hope Outreach Ministries handles the personal information you share t
 leaders: []
 ---
 
-*Draft — to be reviewed by the church's leadership (and an advisor, if possible) before launch.*
+<!-- *Draft — to be reviewed by the church's leadership (and an advisor before launch.* -->
 
 ## Who we are
 

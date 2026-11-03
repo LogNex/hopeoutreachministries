@@ -1,25 +1,29 @@
 ---
 title: New here?
-intro: Karibu! Whether it's your first Sunday or your first time in church, you're welcome just as you are.
+intro: Karibu! Whether it's your first Sunday or your first time in church, this is home.
 leaders: []
 ---
 
 ## What to expect
 
-*Describe a typical service: how long it lasts, the worship, the preaching, and when people pray together.*
+Prayers
+Worshipping the Lord
+Praising the Lord
+A power packed word session
+Refreshing and restoration
 
-## What to wear
-
-*Come as you are, or describe what most people wear.*
 
 ## Children and youth
 
-*What happens for children during the service, and where parents take them.*
+<!-- *What happens for children during the service, and where parents take them.* -->
 
 ## Languages
 
-Each branch lists its services with the language they are held in — English, Kiswahili, or both. See your branch's page for its times.
+Each branch holds its services with the language they are held in — English, Kiswahili, or both. See your branch's page for its times.
 
 ## After the service
 
-*How newcomers can meet the pastor, join a fellowship group, or join the membership class.*
+Interaction with the pastor.
+First timer's special session.
+Membership class.
+Photo sessions.

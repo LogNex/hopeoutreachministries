@@ -1,7 +1,7 @@
 ---
 title: Youth
 order: 1
-summary: For young people across all our branches.
+summary: Energy,passion, vision and love for Jesus.
 photo: ""
 leader: ""
 leaderPhoto: ""

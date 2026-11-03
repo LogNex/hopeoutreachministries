@@ -1,7 +1,7 @@
 ---
 title: Mission Outreaches
 order: 3
-summary: Taking the gospel and practical help to communities beyond our branches.
+summary: Taking the gospel and social work to communities beyond our locality.
 photo: ""
 leader: ""
 leaderPhoto: ""

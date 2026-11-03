@@ -10,11 +10,11 @@ longitude: 37.17
 pastor: "Reverend Nackson Letuati Umash"
 pastorPhoto: "/images/pastors/nackson-umash.jpg"
 photo: ""
-phone: ""
-whatsapp: ""
+phone: "+254733706364"
+whatsapp: "254733706364"
 email: ""
-paybill: ""
-accounts: []
+paybill: "222 111"
+accounts: [067 0000 4229]
 services:
   - day: Sunday
     time: "09:30"
