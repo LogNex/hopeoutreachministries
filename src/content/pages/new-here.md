@@ -7,9 +7,13 @@ leaders: []
 ## What to expect
 
 Prayers
+
 Worshipping the Lord
+
 Praising the Lord
+
 A power packed word session
+
 Refreshing and restoration
 
 
@@ -19,11 +23,16 @@ Refreshing and restoration
 
 ## Languages
 
-Each branch holds its services with the language they are held in — English, Kiswahili, or both. See your branch's page for its times.
+Each branch holds its services with the language they are held in — English, Kiswahili, or both.
+
+See your branch's page for its times.
 
 ## After the service
 
 Interaction with the pastor.
+
 First timer's special session.
+
 Membership class.
+
 Photo sessions.
