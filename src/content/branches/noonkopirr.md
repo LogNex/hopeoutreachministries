@@ -1,6 +1,6 @@
 ---
 town: Noonkopirr
-order: -17
+order: 7
 subCounty: Kitengela
 county: Kajiado
 address: Near Noonkopirr Township Primary School
