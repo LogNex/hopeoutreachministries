@@ -9,7 +9,7 @@ exactPin: true
 pastor: Pastor Kathenya
 services:
   - day: Sunday
-    time: 09:30
+    time: 10:00
     name: Sunday Service
     language: English & Kiswahili
 ---
