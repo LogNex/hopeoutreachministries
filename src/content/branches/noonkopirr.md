@@ -6,6 +6,8 @@ county: Kajiado
 address: Near Noonkopirr Township Primary School
 mapLink: https://maps.app.goo.gl/cXzYkGKYMxYhd7cf6
 exactPin: true
+latitude: -1.467374
+longitude: 36949485
 pastor: Pastor Kathenya
 services:
   - day: Sunday
