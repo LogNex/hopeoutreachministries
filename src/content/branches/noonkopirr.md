@@ -4,7 +4,7 @@ order: 7
 subCounty: Kitengela
 county: Kajiado
 address: Near Noonkopirr Township Primary School
-mapLink: https://maps.app.goo.gl/PqE5kFfc65TpJQXF7
+mapLink: https://maps.app.goo.gl/cXzYkGKYMxYhd7cf6
 exactPin: false
 pastor: Pastor Kathenya
 services:
