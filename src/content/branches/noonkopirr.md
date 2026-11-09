@@ -1,11 +1,11 @@
 ---
 town: Noonkopirr
-order: 7
+order: -17
 subCounty: Kitengela
 county: Kajiado
 address: Near Noonkopirr Township Primary School
 mapLink: https://maps.app.goo.gl/cXzYkGKYMxYhd7cf6
-exactPin: false
+exactPin: true
 pastor: Pastor Kathenya
 services:
   - day: Sunday
